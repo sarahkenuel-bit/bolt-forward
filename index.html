@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bolt Forward — Leadership Simulation</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0C2C1C;--ink2:#163d28;--green:#2A9C64;--green-l:#3db87a;--green-on-dark:#4fd490;--paper:#fff;--paper2:#f3f8f5;--paper3:#e6f2ec;--red:#b83232;--warn:#b87832;--blue:#1a4a7a;--muted:#4e6e5c;--border:rgba(12,44,28,.1);--card:#fff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;font-size:14px;line-height:1.6;min-height:100vh;}
+.screen{display:none;min-height:100vh;flex-direction:column;}.screen.active{display:flex;}
+#splash{background:var(--ink);color:var(--paper);align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.sp-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(42,156,100,.05)1px,transparent 1px),linear-gradient(90deg,rgba(42,156,100,.05)1px,transparent 1px);background-size:72px 72px;}
+.sp-glow{position:absolute;inset:0;background:radial-gradient(ellipse 65% 55% at 25% 65%,rgba(42,156,100,.13)0%,transparent 65%);}
+.sp-c{position:relative;z-index:2;text-align:center;max-width:640px;padding:56px 36px;animation:up .9s cubic-bezier(.16,1,.3,1)both;}
+.sp-bolt{font-weight:800;font-size:80px;line-height:.92;letter-spacing:-.03em;color:var(--paper);}
+.sp-fwd{font-weight:800;font-size:80px;line-height:.92;letter-spacing:-.03em;color:var(--green-on-dark);}
+.sp-div{width:3px;height:64px;background:var(--green);opacity:.4;flex-shrink:0;margin:0 14px;}
+.sp-tag{font-weight:500;font-size:10px;letter-spacing:.38em;text-transform:uppercase;color:var(--green-on-dark);opacity:.65;margin-top:10px;margin-bottom:36px;}
+.sp-h2{font-weight:600;font-size:24px;line-height:1.45;margin-bottom:12px;color:rgba(255,255,255,.9);}
+.sp-p{font-size:13px;color:rgba(255,255,255,.4);line-height:1.9;margin-bottom:32px;}
+.team-input-wrap{margin-bottom:28px;}
+.team-input-label{font-size:10px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--green-on-dark);opacity:.7;margin-bottom:8px;display:block;}
+.team-input{width:100%;background:rgba(255,255,255,.08);border:2px solid rgba(42,156,100,.3);color:var(--paper);font-size:22px;font-weight:700;padding:14px 18px;text-align:center;outline:none;transition:border-color .2s;border-radius:2px;}
+.team-input::placeholder{color:rgba(255,255,255,.2);}.team-input:focus{border-color:var(--green);}
+.btn-g{display:inline-flex;align-items:center;gap:10px;background:var(--green);color:#fff;border:none;padding:15px 48px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .22s;border-radius:2px;}
+.btn-g:hover{background:var(--green-l);transform:translateY(-2px);}
+.btn-g:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.fac-link{margin-top:16px;display:block;font-size:10px;font-weight:500;color:rgba(255,255,255,.25);cursor:pointer;text-decoration:underline;}
+.fac-link:hover{color:rgba(255,255,255,.5);}
+.topbar{background:var(--ink);padding:14px 44px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.tb-logo{font-weight:800;font-size:20px;letter-spacing:-.02em;color:#fff;}
+.tb-logo em{color:var(--green-on-dark);font-style:normal;}
+.tb-tag{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:rgba(79,212,144,.5);font-weight:500;}
+#game{background:var(--paper);}
+.game-hdr{background:var(--ink);display:flex;align-items:stretch;border-bottom:1px solid rgba(42,156,100,.18);position:sticky;top:0;z-index:100;}
+.gh-brand{padding:12px 20px;border-right:1px solid rgba(42,156,100,.15);display:flex;flex-direction:column;justify-content:center;min-width:155px;}
+.gh-logo{font-weight:800;font-size:15px;color:#fff;letter-spacing:-.02em;}
+.gh-logo em{color:var(--green-on-dark);font-style:normal;}
+.gh-team{font-size:11px;font-weight:700;color:var(--green);margin-top:1px;}
+.gh-yr{font-size:9px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:rgba(79,212,144,.45);margin-top:1px;}
+.gh-kpis{display:flex;flex:1;}
+.kc{flex:1;padding:8px 12px;border-right:1px solid rgba(255,255,255,.04);display:flex;flex-direction:column;justify-content:center;}
+.kc:last-child{border-right:none;}
+.kc-l{font-size:7px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.27);margin-bottom:2px;}
+.kc-v{font-size:17px;font-weight:800;line-height:1;color:var(--paper);}
+.kv-g{color:var(--green-on-dark);}.kv-a{color:#e0a03a;}.kv-r{color:#e05858;}
+.kc-s{font-size:8px;margin-top:1px;font-weight:500;color:rgba(255,255,255,.28);}
+.s-dn{color:#e05858;}.s-up{color:var(--green-on-dark);}
+.silo-alert{background:rgba(184,50,50,.08);border-bottom:1px solid rgba(184,50,50,.25);padding:8px 32px;display:flex;align-items:center;gap:10px;font-size:11px;color:#e08080;font-weight:500;}
+.silo-alert.off{display:none;}.sa-x{margin-left:auto;cursor:pointer;opacity:.5;}.sa-x:hover{opacity:1;}
+.trust-wobbler{display:none;background:rgba(184,50,50,.09);border:1px solid rgba(184,50,50,.3);border-left:4px solid var(--red);padding:13px 18px;margin-bottom:14px;}
+.trust-wobbler.show{display:block;}
+.tw-label{font-size:8px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:#e06060;margin-bottom:5px;}
+.tw-body{font-size:12px;color:var(--ink);line-height:1.7;}
+.budget-notice{display:none;background:rgba(184,50,50,.07);border:1px solid rgba(184,50,50,.28);border-left:4px solid var(--red);padding:16px 20px;margin-bottom:20px;}
+.budget-notice.show{display:block;}
+.bn-title{font-size:8px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--red);margin-bottom:10px;}
+.bn-item{margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(184,50,50,.12);}
+.bn-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.bn-reason{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px;}
+.bn-cut{color:var(--red);font-weight:800;}
+.bn-detail{font-size:11px;color:var(--muted);line-height:1.5;}
+.bn-final{font-size:11px;font-weight:700;color:var(--ink);margin-top:10px;padding-top:10px;border-top:1px solid rgba(184,50,50,.2);}
+.game-body{display:grid;grid-template-columns:1fr 340px;flex:1;}
+.main-col{padding:28px 32px;overflow-y:auto;border-right:1px solid var(--border);}
+.side-col{padding:20px 18px;overflow-y:auto;background:var(--paper2);}
+.yr-intro{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.yi-badge{display:inline-flex;align-items:center;gap:7px;background:var(--ink);color:var(--green-on-dark);padding:6px 14px;font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px;border-radius:2px;}
+.yi-title{font-weight:600;font-size:44px;line-height:1;margin-bottom:4px;}
+.yi-sub{font-size:12px;color:var(--muted);max-width:460px;line-height:1.75;}
+.phase-row{display:flex;flex-shrink:0;}
+.ps{font-size:8px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;padding:7px 11px;border:1px solid var(--border);color:var(--muted);border-right:none;}
+.ps:last-child{border-right:1px solid var(--border);}
+.ps.cur{background:var(--ink);color:var(--green-on-dark);border-color:var(--ink);}
+.ps.done{background:var(--green);color:#fff;border-color:var(--green);}
+.wobbler{background:var(--ink);color:var(--paper);padding:20px 24px;margin-bottom:20px;position:relative;overflow:hidden;animation:slideIn .35s ease both;}
+.wobbler::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--red);}
+.wb-type{font-size:8px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:#e06060;margin-bottom:6px;}
+.wb-title{font-size:20px;font-weight:600;line-height:1.2;margin-bottom:10px;}
+.wb-body{font-size:12px;color:rgba(255,255,255,.7);line-height:1.8;margin-bottom:14px;}
+.wb-tags{display:flex;gap:7px;flex-wrap:wrap;}
+.wtag{font-size:8px;font-weight:500;padding:3px 9px;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.45);}
+.wt-r{border-color:rgba(224,88,88,.35);color:#e08080;}.wt-a{border-color:rgba(224,160,58,.35);color:#e0b060;}
+.decisions{display:grid;gap:10px;margin-bottom:20px;}
+.dec-card{border:1px solid var(--border);background:var(--card);overflow:hidden;animation:up .4s ease both;border-radius:2px;}
+.dec-card:nth-child(2){animation-delay:.07s;}.dec-card:nth-child(3){animation-delay:.14s;}.dec-card:nth-child(4){animation-delay:.21s;}.dec-card:nth-child(5){animation-delay:.28s;}
+.dec-hd{background:var(--ink);color:var(--paper);padding:12px 15px;display:flex;align-items:center;justify-content:space-between;}
+.dh-l{display:flex;align-items:center;gap:9px;}
+.dh-ico{font-size:16px;}.dh-name{font-weight:600;font-size:13px;}
+.dh-sub{font-size:8px;font-weight:500;letter-spacing:.08em;color:rgba(255,255,255,.38);margin-top:1px;}
+.dh-bud{font-size:12px;font-weight:800;color:var(--green-on-dark);text-align:right;white-space:nowrap;}
+.ent-badge{font-size:7px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:2px 6px;border:1px solid rgba(79,212,144,.4);color:var(--green-on-dark);margin-left:6px;}
+.dec-opts{padding:12px;display:grid;gap:7px;}
+.dec-opt{border:1px solid var(--border);padding:11px 13px;cursor:pointer;transition:all .14s;display:flex;align-items:flex-start;gap:9px;position:relative;border-radius:2px;}
+.dec-opt:hover{border-color:var(--green);background:#f0faf5;}
+.dec-opt.sel{border-color:var(--green);background:#f0faf5;}
+.dec-opt.sel::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green);}
+.dec-opt.locked{opacity:.4;cursor:not-allowed;pointer-events:none;}
+.lock-overlay{position:absolute;inset:0;background:rgba(243,248,245,.93);display:flex;align-items:center;justify-content:center;gap:8px;font-size:9px;font-weight:600;letter-spacing:.12em;color:var(--red);}
+.opt-radio{width:14px;height:14px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;margin-top:3px;transition:all .14s;display:grid;place-items:center;}
+.dec-opt.sel .opt-radio{border-color:var(--green);background:var(--green);}
+.dec-opt.sel .opt-radio::after{content:'';width:4px;height:4px;background:#fff;border-radius:50%;}
+.opt-body{flex:1;}.opt-title{font-weight:600;font-size:12px;margin-bottom:2px;}
+.opt-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+.opt-costs{display:flex;gap:8px;margin-top:5px;flex-wrap:wrap;}
+.opt-cost-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:2px;background:var(--paper3);color:var(--ink);}
+.oct-hc{background:#e8eef7;color:var(--blue);}
+.commit-bar{border-top:1px solid var(--border);padding:18px 0 0;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.ci{font-size:12px;color:var(--muted);}.ci strong{color:var(--ink);font-weight:600;}
+.btn-commit{background:var(--ink);color:var(--green-on-dark);border:none;padding:13px 36px;font-weight:800;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;border-radius:2px;}
+.btn-commit:hover{background:var(--ink2);transform:translateY(-1px);}
+.btn-commit:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+.hc-card{border:2px solid rgba(42,156,100,.35);background:var(--card);overflow:hidden;animation:up .4s ease both;animation-delay:.28s;border-radius:2px;}
+.hc-hd{background:var(--ink);color:var(--paper);padding:12px 15px;display:flex;align-items:center;justify-content:space-between;}
+.hc-hd-l{display:flex;align-items:center;gap:9px;}
+.hc-title{font-weight:600;font-size:13px;}.hc-sub{font-size:8px;font-weight:500;color:rgba(255,255,255,.38);margin-top:1px;}
+.hc-badge{font-size:7px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:2px 6px;border:1px solid rgba(79,212,144,.4);color:var(--green-on-dark);}
+.hc-available{font-size:13px;font-weight:800;color:var(--green-on-dark);}
+.hc-body{padding:16px;}
+.hc-pool-bar{height:8px;background:rgba(12,44,28,.08);border-radius:4px;overflow:hidden;margin-bottom:14px;}
+.hc-pool-fill{height:100%;border-radius:4px;transition:width .4s ease;background:var(--green);}
+.hc-pool-fill.over{background:var(--red);}
+.hc-pool-label{font-size:10px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;}
+.hc-pool-used{color:var(--ink);}.hc-pool-rem{color:var(--muted);}.hc-pool-rem.over{color:var(--red);}
+.hc-sliders{display:grid;gap:12px;}
+.hc-slider-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.hc-dept-name{font-size:12px;font-weight:600;}.hc-dept-meta{font-size:10px;color:var(--muted);}
+.hc-dept-val{font-size:13px;font-weight:800;color:var(--ink);min-width:48px;text-align:right;}
+.hc-slider{width:100%;height:6px;-webkit-appearance:none;appearance:none;background:rgba(12,44,28,.1);border-radius:3px;outline:none;cursor:pointer;}
+.hc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--green);cursor:pointer;}
+.hc-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--green);cursor:pointer;border:none;}
+.hc-summary-box{background:var(--ink);color:var(--paper);padding:14px 16px;margin-bottom:10px;}
+.hsb-title{font-size:7px;font-weight:600;letter-spacing:.25em;text-transform:uppercase;color:rgba(79,212,144,.55);margin-bottom:10px;}
+.hsb-total{font-size:22px;font-weight:800;color:var(--green-on-dark);line-height:1;}
+.hsb-label{font-size:10px;color:rgba(255,255,255,.4);margin-bottom:10px;}
+.hsb-growth{font-size:11px;color:rgba(255,255,255,.6);padding-top:8px;border-top:1px solid rgba(255,255,255,.06);}
+.hsb-growth span{color:var(--green-on-dark);font-weight:700;}
+.hc-dept-bars{display:grid;gap:6px;margin-top:8px;}
+.hc-dept-bar-row{display:flex;align-items:center;gap:8px;font-size:10px;}
+.hdb-name{flex:0 0 80px;color:rgba(255,255,255,.55);font-weight:500;}
+.hdb-track{flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;}
+.hdb-fill{height:100%;border-radius:2px;background:var(--green);transition:width .5s ease;}
+.hdb-val{flex:0 0 36px;text-align:right;color:rgba(255,255,255,.7);font-weight:600;}
+.ss{margin-bottom:20px;}
+.sl{font-size:8px;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--muted);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:10px;}
+.trust-box{background:var(--ink);color:var(--paper);padding:14px 16px;position:relative;overflow:hidden;margin-bottom:10px;}
+.trust-box::after{content:'';position:absolute;bottom:0;left:0;height:3px;width:var(--tp,29%);background:linear-gradient(90deg,#b83232,#d4841a,var(--green));transition:width .8s ease;}
+.tb-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.tb-l{font-size:8px;font-weight:600;letter-spacing:.25em;text-transform:uppercase;color:rgba(79,212,144,.55);}
+.tb-v{font-size:24px;font-weight:800;color:var(--green-on-dark);}
+.tb-d{font-size:11px;color:rgba(255,255,255,.5);line-height:1.4;}
+.tb-u{font-size:9px;font-weight:500;color:rgba(255,255,255,.28);margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06);}
+.tb-u.open{color:var(--green-on-dark);}
+.trust-tier-panel{background:rgba(12,44,28,.04);border:1px solid var(--border);padding:9px 11px;margin-top:7px;}
+.ttp-title{font-size:7px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.ttp-row{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:9px;color:var(--muted);}
+.ttp-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}.ttp-active{color:var(--ink);font-weight:600;}
+.hbars{display:grid;gap:8px;}
+.hb-head{display:flex;justify-content:space-between;margin-bottom:2px;font-size:11px;}
+.hb-n{font-weight:600;font-size:11px;}.hb-v{font-size:10px;font-weight:500;color:var(--muted);}
+.hb-track{height:5px;background:rgba(12,44,28,.08);border-radius:2px;overflow:hidden;}
+.hb-fill{height:100%;border-radius:2px;transition:width .75s cubic-bezier(.4,0,.2,1);}
+.hf-r{background:var(--red);}.hf-a{background:var(--warn);}.hf-g{background:var(--green);}
+.sys-chain{display:grid;gap:5px;}
+.sys-row{display:flex;align-items:center;gap:6px;font-size:10px;padding:6px 8px;border:1px solid var(--border);background:var(--card);border-radius:2px;}
+.sf{font-weight:600;flex:1;font-size:10px;}.sa{color:var(--green);font-size:9px;flex-shrink:0;font-weight:600;}.st{color:var(--muted);flex:1;font-size:10px;}
+.ss-stat{font-size:7px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 5px;flex-shrink:0;border-radius:2px;}
+.ss-hot{background:#fdecea;color:var(--red);}.ss-ok{background:#e4f5ec;color:#1a6b42;}
+.compound-drift{display:none;background:rgba(184,50,50,.06);border:1px solid rgba(184,50,50,.2);padding:7px 10px;margin-bottom:8px;font-size:10px;font-weight:500;color:#c06060;border-radius:2px;}
+.compound-drift.show{display:block;}
+.cd-title{font-size:7px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;margin-bottom:2px;color:#e06060;}
+.bdg-row{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+.bdg-ring{width:60px;height:60px;flex-shrink:0;}
+.bdg-svg{width:60px;height:60px;transform:rotate(-90deg);}
+.bdg-bg{fill:none;stroke:rgba(12,44,28,.08);stroke-width:7;}
+.bdg-fill{fill:none;stroke:var(--green);stroke-width:7;stroke-linecap:butt;transition:stroke-dasharray .7s ease;}
+.bdg-spent{font-size:20px;font-weight:800;line-height:1;}
+.bdg-of{font-size:10px;color:var(--muted);}
+.bdg-left{font-size:11px;font-weight:600;margin-top:2px;}
+.bl-ok{color:var(--green);}.bl-dn{color:var(--red);}
+.bal-list{display:grid;gap:8px;}
+.bal-row{display:flex;align-items:center;gap:7px;font-size:10px;}
+.bl{flex:0 0 68px;color:var(--muted);}.bt{flex:1;height:5px;background:rgba(12,44,28,.07);border-radius:2px;position:relative;}.br{flex:0 0 68px;color:var(--muted);text-align:right;}
+.bf-l{position:absolute;left:0;top:0;bottom:0;background:var(--red);border-radius:2px;transition:width .7s;}
+.bf-r{position:absolute;right:0;top:0;bottom:0;background:var(--green);border-radius:2px;transition:width .7s;}
+.prompt{background:var(--ink);color:var(--paper);padding:11px 14px;margin-bottom:6px;border-left:3px solid var(--green);}
+.pr-t{font-size:7px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:rgba(79,212,144,.6);margin-bottom:3px;}
+.pr-b{font-size:11px;color:rgba(255,255,255,.75);line-height:1.55;}
+#results{background:var(--ink);color:var(--paper);overflow-y:auto;}
+.rw{max-width:900px;margin:0 auto;padding:48px 36px;}
+.re{font-size:9px;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--green-on-dark);opacity:.7;margin-bottom:7px;}
+.rt{font-weight:600;font-size:52px;line-height:1;margin-bottom:5px;}
+.rs{font-size:14px;color:rgba(255,255,255,.38);margin-bottom:28px;}
+.adapt-badge{display:none;align-items:center;gap:8px;background:rgba(42,156,100,.1);border:1px solid rgba(42,156,100,.28);padding:8px 14px;margin-bottom:16px;font-size:9px;font-weight:600;letter-spacing:.12em;color:var(--green-on-dark);}
+.mult-callout{background:rgba(42,156,100,.07);border:1px solid rgba(42,156,100,.22);padding:11px 16px;margin-bottom:14px;display:none;gap:10px;align-items:center;}
+.mult-callout.show{display:flex;}
+.mc-ico{font-size:18px;}.mc-txt{font-size:11px;color:rgba(255,255,255,.75);line-height:1.6;}
+.compound-panel{display:none;margin-bottom:24px;}.compound-panel.show{display:block;}
+.cp-title{font-size:8px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:rgba(79,212,144,.6);margin-bottom:8px;}
+.cp-item{border-left:3px solid var(--red);background:rgba(184,50,50,.07);padding:10px 14px;margin-bottom:7px;}
+.cp-item-h{font-weight:600;font-size:12px;margin-bottom:2px;}.cp-item-b{font-size:11px;color:rgba(255,255,255,.58);line-height:1.6;}
+.hc-results{background:rgba(42,156,100,.06);border:1px solid rgba(42,156,100,.18);padding:18px 20px;margin-bottom:24px;}
+.hcr-title{font-size:8px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:rgba(79,212,144,.65);margin-bottom:12px;}
+.hcr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;}
+.hcr-stat{text-align:center;padding:10px;}
+.hcr-val{font-size:22px;font-weight:800;color:var(--green-on-dark);line-height:1;margin-bottom:2px;}
+.hcr-lbl{font-size:9px;color:rgba(255,255,255,.4);font-weight:500;}
+.hcr-depts{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+.hcr-dept{text-align:center;padding:8px 4px;background:rgba(255,255,255,.03);border-radius:2px;}
+.hcr-dept-val{font-size:14px;font-weight:800;color:#fff;line-height:1;}
+.hcr-dept-name{font-size:8px;color:rgba(255,255,255,.35);margin-top:2px;}
+.mets-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;}
+.mcard{border:1px solid rgba(255,255,255,.07);padding:20px 18px;background:rgba(255,255,255,.02);animation:up .45s ease both;border-radius:2px;}
+.mcard:nth-child(2){animation-delay:.08s;}.mcard:nth-child(3){animation-delay:.16s;}.mcard:nth-child(4){animation-delay:.24s;}
+.mc-l{font-size:8px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.28);margin-bottom:8px;}
+.mc-v{font-size:40px;font-weight:800;line-height:1;margin-bottom:6px;}
+.mc-c{font-size:11px;display:flex;align-items:center;gap:3px;margin-bottom:8px;font-weight:500;}
+.mc-pos{color:#5dda7d;}.mc-neg{color:#e05858;}
+.mc-bar{height:2px;background:rgba(255,255,255,.05);}
+.mc-bf{height:100%;transition:width 1s ease;}
+.grades{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:28px;}
+.gc{text-align:center;padding:14px 8px;border:1px solid rgba(255,255,255,.07);border-radius:2px;}
+.gl{font-size:38px;font-weight:800;line-height:1;margin-bottom:2px;}
+.gA{color:#5dda7d;}.gB{color:var(--green-on-dark);}.gC{color:#e0a03a;}.gD{color:#e05858;}
+.gd{font-size:7px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.28);}
+.insights{display:grid;gap:9px;margin-bottom:28px;}
+.ins{border-left:3px solid var(--green);padding:14px 18px;background:rgba(42,156,100,.06);}
+.ins.danger{border-left-color:var(--red);background:rgba(184,50,50,.06);}
+.ins-t{font-size:7px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--green-on-dark);opacity:.8;margin-bottom:4px;}
+.ins.danger .ins-t{color:#e08080;opacity:1;}
+.ins-b{font-size:12px;color:rgba(255,255,255,.8);line-height:1.7;}
+.submit-score-box{background:rgba(42,156,100,.08);border:1px solid rgba(42,156,100,.28);padding:18px 22px;margin-bottom:20px;}
+.ssb-title{font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--green-on-dark);margin-bottom:5px;}
+.ssb-desc{font-size:12px;color:rgba(255,255,255,.55);margin-bottom:12px;line-height:1.6;}
+.ssb-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.btn-submit-score{background:var(--green);color:#fff;border:none;padding:11px 24px;font-weight:800;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;border-radius:2px;white-space:nowrap;}
+.btn-submit-score:hover{background:var(--green-l);}
+.btn-submit-score:disabled{opacity:.4;cursor:not-allowed;}
+.ssb-status{font-size:11px;font-weight:600;color:var(--green-on-dark);}
+.btn-next{background:var(--green);color:#fff;border:none;padding:14px 40px;font-weight:800;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;border-radius:2px;}
+.btn-next:hover{background:var(--green-l);transform:translateY(-2px);}
+#final{background:var(--paper);overflow-y:auto;}
+.fw{max-width:920px;margin:0 auto;padding:48px 36px;}
+.final-hero{background:var(--ink);padding:48px 52px;margin-bottom:36px;display:flex;align-items:center;gap:40px;position:relative;overflow:hidden;}
+.final-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 55% 80% at 15% 50%,rgba(42,156,100,.10)0%,transparent 60%);}
+.fg-big{font-weight:800;font-size:120px;line-height:1;color:var(--green-on-dark);position:relative;z-index:1;flex-shrink:0;}
+.fh-r{position:relative;z-index:1;}
+.fh-verdict{font-size:26px;font-weight:600;color:var(--paper);line-height:1.3;margin-bottom:10px;}
+.fh-ctx{font-size:13px;color:rgba(255,255,255,.48);line-height:1.75;max-width:380px;}
+.fkpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px;}
+.fk{border:1px solid var(--border);background:var(--card);padding:18px 14px;border-radius:2px;}
+.fk-l{font-size:8px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.fk-v{font-size:28px;font-weight:800;line-height:1;margin-bottom:4px;}
+.fk-c{font-size:10px;font-weight:500;}
+.fc-g{color:var(--green);}.fc-r{color:var(--red);}
+.deb-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px;}
+.deb-card{border:1px solid var(--border);background:var(--card);padding:22px;border-radius:2px;}
+.deb-title{font-size:17px;font-weight:600;margin-bottom:12px;}
+.deb-item{border-bottom:1px solid var(--border);padding:8px 0;font-size:12px;color:var(--muted);line-height:1.6;display:flex;gap:8px;}
+.deb-item:last-child{border-bottom:none;}
+.di-p{color:var(--green);font-weight:800;flex-shrink:0;}.di-a{color:var(--red);font-weight:800;flex-shrink:0;}
+.fac-box{background:var(--ink);color:var(--paper);padding:28px 32px;margin-bottom:28px;}
+.fac-h{font-size:20px;font-weight:600;color:var(--green-on-dark);margin-bottom:18px;}
+.fac-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
+.fac-q{font-size:8px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:rgba(79,212,144,.55);margin-bottom:4px;}
+.fac-t{font-size:12px;color:rgba(255,255,255,.68);line-height:1.6;}
+.btn-restart{background:var(--ink);color:var(--green-on-dark);border:none;padding:13px 36px;font-weight:800;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;border-radius:2px;}
+.btn-restart:hover{transform:translateY(-1px);}
+#facilitator{background:var(--ink);overflow-y:auto;min-height:100vh;}
+.fac-view{max-width:1200px;margin:0 auto;padding:44px 36px;}
+.fac-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;}
+.fac-hdr-logo{font-weight:800;font-size:26px;color:#fff;}
+.fac-hdr-logo em{color:var(--green-on-dark);font-style:normal;}
+.fac-hdr-sub{font-size:10px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:rgba(79,212,144,.5);}
+.btn-fac{background:rgba(42,156,100,.15);border:1px solid rgba(42,156,100,.3);color:var(--green-on-dark);padding:9px 18px;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .2s;}
+.btn-fac:hover{background:rgba(42,156,100,.25);}
+.yr-tabs{display:flex;gap:4px;margin-bottom:28px;}
+.yr-tab{padding:8px 20px;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);transition:all .18s;border-radius:2px;}
+.yr-tab.active{background:var(--green);color:#fff;border-color:var(--green);}
+.yr-tab:hover:not(.active){border-color:rgba(42,156,100,.4);color:rgba(79,212,144,.8);}
+.no-scores{text-align:center;padding:60px 20px;color:rgba(255,255,255,.4);font-size:14px;line-height:2;}
+.no-scores-big{font-size:48px;margin-bottom:12px;}
+.lb-section{margin-bottom:36px;}
+.lb-section-title{font-size:8px;font-weight:600;letter-spacing:.32em;text-transform:uppercase;color:rgba(79,212,144,.55);margin-bottom:12px;}
+.lb-table{width:100%;border-collapse:collapse;}
+.lb-table th{font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:7px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06);}
+.lb-table th.num{text-align:right;}
+.lb-table td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;vertical-align:middle;}
+.lb-table td.num{text-align:right;font-weight:700;font-size:12px;}
+.lb-rank{font-weight:800;font-size:16px;color:rgba(255,255,255,.2);width:28px;}
+.lb-rank.r1{color:#FFD700;}.lb-rank.r2{color:#C0C0C0;}.lb-rank.r3{color:#CD7F32;}
+.lb-team{font-weight:700;font-size:13px;color:#fff;}
+.lb-val-good{color:var(--green-on-dark);}.lb-val-bad{color:#e05858;}.lb-val-mid{color:#e0a03a;}
+.lb-overall{font-size:15px;font-weight:800;}
+.grade-pill{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:2px;}
+.gp-A{background:rgba(93,218,125,.15);color:#5dda7d;}.gp-B{background:rgba(79,212,144,.12);color:var(--green-on-dark);}.gp-C{background:rgba(224,160,58,.12);color:#e0a03a;}.gp-D{background:rgba(184,50,50,.15);color:#e05858;}
+.kpi-compare{display:grid;gap:14px;margin-bottom:36px;}
+.kpi-row{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);padding:14px 18px;border-radius:2px;}
+.kpi-row-title{font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:10px;}
+.kpi-bars{display:grid;gap:7px;}
+.kpi-bar-row{display:flex;align-items:center;gap:10px;}
+.kpi-bar-team{font-size:11px;font-weight:600;color:#fff;flex:0 0 120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.kpi-bar-track{flex:1;height:7px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
+.kpi-bar-fill{height:100%;border-radius:2px;transition:width 1s ease;}
+.kpi-bar-val{font-size:11px;font-weight:700;flex:0 0 60px;text-align:right;}
+.podium-wrap{text-align:center;padding:36px 20px;}
+.podium-title{font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:rgba(79,212,144,.6);margin-bottom:8px;}
+.podium-sub{font-size:32px;font-weight:600;color:#fff;margin-bottom:44px;line-height:1.2;}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin-bottom:36px;}
+.podium-place{display:flex;flex-direction:column;align-items:center;}
+.podium-name{font-size:12px;font-weight:700;color:#fff;margin-bottom:6px;text-align:center;max-width:130px;}
+.podium-score-label{font-size:9px;font-weight:500;color:rgba(255,255,255,.4);margin-bottom:3px;}
+.podium-score{font-size:16px;font-weight:800;color:var(--green-on-dark);margin-bottom:6px;}
+.podium-block{width:130px;display:flex;align-items:center;justify-content:center;border-radius:2px 2px 0 0;}
+.pb-1{height:150px;background:linear-gradient(180deg,#FFD700,#e6b800);color:var(--ink);}
+.pb-2{height:105px;background:linear-gradient(180deg,#C0C0C0,#a8a8a8);color:var(--ink);}
+.pb-3{height:70px;background:linear-gradient(180deg,#CD7F32,#b06a20);color:#fff;}
+.pb-rest{height:45px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);}
+.podium-place-num{font-size:26px;font-weight:800;}
+.modal-bg{position:fixed;inset:0;background:rgba(12,44,28,.82);z-index:500;display:none;place-items:center;}
+.modal-bg.open{display:grid;}
+.modal-box{background:var(--paper);max-width:500px;width:90%;padding:32px;animation:up .3s ease both;border-radius:2px;}
+.modal-t{font-size:22px;font-weight:600;margin-bottom:8px;}
+.modal-b{font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:22px;}
+.modal-b strong{color:var(--ink);font-weight:600;}
+.modal-a{display:flex;gap:10px;justify-content:flex-end;}
+.btn-cancel{background:transparent;border:1px solid var(--border);padding:10px 20px;font-size:12px;cursor:pointer;color:var(--muted);border-radius:2px;}
+.btn-cancel:hover{border-color:var(--ink);color:var(--ink);}
+.btn-confirm{background:var(--ink);color:var(--green-on-dark);border:none;padding:10px 24px;font-weight:800;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;border-radius:2px;}
+.btn-confirm:hover{background:var(--ink2);}
+@keyframes up{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-14px);}to{opacity:1;transform:translateX(0);}}
+@media(max-width:860px){.game-body{grid-template-columns:1fr;}.side-col{display:none;}.mets-grid,.deb-cols{grid-template-columns:1fr;}.grades{grid-template-columns:repeat(3,1fr);}.fkpis{grid-template-columns:1fr 1fr;}.fac-grid{grid-template-columns:1fr;}.final-hero{flex-direction:column;gap:20px;padding:32px;}.fg-big{font-size:80px;}.hcr-depts{grid-template-columns:repeat(3,1fr);}}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash" class="screen active">
+  <div class="sp-grid"></div><div class="sp-glow"></div>
+  <div class="sp-c">
+    <div style="display:flex;align-items:baseline;justify-content:center;">
+      <span class="sp-bolt">Bolt</span><div class="sp-div"></div><span class="sp-fwd">Forward</span>
+    </div>
+    <div class="sp-tag">Enterprise Leadership Simulation</div>
+    <div class="sp-h2">The organisation is successful.<br>It could be so much more.</div>
+    <p class="sp-p">A three-year strategic simulation. Real decisions. Real consequences.<br>Discover whether you lead for your vertical — or for the enterprise.</p>
+    <div class="team-input-wrap">
+      <label class="team-input-label" for="teamNameInput">Enter your team name</label>
+      <input class="team-input" id="teamNameInput" type="text" placeholder="e.g. Team Jaguar" maxlength="32" oninput="onTeamNameInput()">
+    </div>
+    <button class="btn-g" id="goBtn" onclick="startGame()" disabled>Enter the Simulation →</button>
+    <a class="fac-link" onclick="showFacilitator()">Facilitator view →</a>
+    <a class="fac-link" onclick="showScreen('setup-instructions')">How to run this on the day →</a>
+  </div>
+</div>
+
+<!-- SETUP INSTRUCTIONS -->
+<div id="setup-instructions" class="screen">
+  <div style="background:var(--ink);min-height:100vh;overflow-y:auto;">
+  <div style="max-width:720px;margin:0 auto;padding:56px 36px;">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:40px;">
+      <span style="font-weight:800;font-size:20px;color:#fff;">Bolt <em style="color:var(--green-on-dark);font-style:normal;">Forward</em></span>
+      <span style="font-size:9px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:rgba(79,212,144,.5);">Facilitator Setup Guide</span>
+    </div>
+    <div style="font-size:9px;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--green-on-dark);opacity:.7;margin-bottom:8px;">Step 1 — Host the simulation</div>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--green);padding:20px 24px;margin-bottom:28px;">
+      <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:8px;">Deploy to Netlify (free, 2 minutes)</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.9;">
+        <span style="color:var(--green-on-dark);font-weight:600;">1.</span> Download this file — click the download icon in the Claude artifact panel.<br>
+        <span style="color:var(--green-on-dark);font-weight:600;">2.</span> Go to <span style="color:var(--green-on-dark);">netlify.com</span> and create a free account.<br>
+        <span style="color:var(--green-on-dark);font-weight:600;">3.</span> From your Netlify dashboard, find the <strong style="color:#fff;">drag and drop</strong> deploy box and drag the file in.<br>
+        <span style="color:var(--green-on-dark);font-weight:600;">4.</span> Copy the URL Netlify gives you and share with all teams before the session.
+      </div>
+    </div>
+    <div style="font-size:9px;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--green-on-dark);opacity:.7;margin-bottom:8px;">Step 2 — On the day setup</div>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--green);padding:20px 24px;margin-bottom:28px;">
+      <div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.9;">
+        <span style="color:var(--green-on-dark);font-weight:600;">Each team</span> needs one laptop. All teams open the same Netlify URL.<br><br>
+        <span style="color:var(--green-on-dark);font-weight:600;">You (facilitator)</span> open the same URL and click <strong style="color:#fff;">"Facilitator view →"</strong> — keep this on the projector throughout.<br><br>
+        <span style="color:var(--green-on-dark);font-weight:600;">Recommended:</span> 6 teams of 5 people. One person per team drives the laptop.
+      </div>
+    </div>
+    <div style="font-size:9px;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--green-on-dark);opacity:.7;margin-bottom:8px;">Step 3 — Running each year</div>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--green);padding:20px 24px;margin-bottom:28px;">
+      <div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.9;">
+        Teams make their decisions and press <strong style="color:#fff;">"Submit Scores →"</strong> at the end of each year. They cannot proceed until submitted.<br><br>
+        You hit <strong style="color:#fff;">"↺ Refresh"</strong> on the facilitator leaderboard to pull in all scores, show on projector, and facilitate discussion before releasing teams to the next year.<br><br>
+        After Year 3 the facilitator view shows the podium automatically.
+      </div>
+    </div>
+    <div style="font-size:9px;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--green-on-dark);opacity:.7;margin-bottom:8px;">Step 4 — The debrief</div>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--green);padding:20px 24px;margin-bottom:28px;">
+      <div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.9;">
+        <span style="color:var(--green-on-dark);font-weight:600;">The Mirror Question</span> — Where did vertical and enterprise interest diverge — and which one won?<br>
+        <span style="color:var(--green-on-dark);font-weight:600;">The System Question</span> — Where is the connected system already running in your real organisation?<br>
+        <span style="color:var(--green-on-dark);font-weight:600;">The Commitment</span> — One behaviour change. Yours. In the next 30 days.
+      </div>
+    </div>
+    <div style="background:rgba(42,156,100,.08);border:1px solid rgba(42,156,100,.25);padding:16px 20px;margin-bottom:32px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--green-on-dark);margin-bottom:6px;">⏱ Timing guide</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.9;">
+        Briefing &amp; setup: <strong style="color:#fff;">20 min</strong> &nbsp;·&nbsp; Year 1 decisions: <strong style="color:#fff;">45–50 min</strong> &nbsp;·&nbsp; Year 1 debrief: <strong style="color:#fff;">25–30 min</strong><br>
+        Year 2 decisions: <strong style="color:#fff;">45–50 min</strong> &nbsp;·&nbsp; Year 2 debrief: <strong style="color:#fff;">25–30 min</strong><br>
+        Year 3 decisions: <strong style="color:#fff;">45–50 min</strong> &nbsp;·&nbsp; Final debrief &amp; podium: <strong style="color:#fff;">45–60 min</strong>
+      </div>
+    </div>
+    <button onclick="showScreen('splash')" style="background:var(--green);color:#fff;border:none;padding:13px 36px;font-weight:800;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border-radius:2px;">← Back to Simulation</button>
+  </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game" class="screen">
+  <header class="game-hdr">
+    <div class="gh-brand">
+      <span class="gh-logo">Bolt <em>Forward</em></span>
+      <span class="gh-team" id="ghTeam"></span>
+      <span class="gh-yr" id="ghYr">Year 1 of 3</span>
+    </div>
+    <div class="gh-kpis">
+      <div class="kc"><div class="kc-l">Revenue</div><div class="kc-v kv-g" id="kRev">€180M</div><div class="kc-s">Baseline</div></div>
+      <div class="kc"><div class="kc-l">Market Share</div><div class="kc-v" id="kMkt">34.0%</div><div class="kc-s">Baseline</div></div>
+      <div class="kc"><div class="kc-l">eNPS</div><div class="kc-v kv-r" id="kNPS">−12</div><div class="kc-s s-dn">▼ Critical</div></div>
+      <div class="kc"><div class="kc-l">Attrition</div><div class="kc-v kv-r" id="kAttr">28%</div><div class="kc-s s-dn">▼ High</div></div>
+      <div class="kc"><div class="kc-l">Headcount</div><div class="kc-v kv-a" id="kHC">4,000</div><div class="kc-s" id="kHCSub">Year 1</div></div>
+      <div class="kc"><div class="kc-l">Budget Left</div><div class="kc-v kv-a" id="kBudget">€12M</div><div class="kc-s" id="kBudSub">of €12M</div></div>
+    </div>
+  </header>
+  <div class="silo-alert off" id="siloAlert">
+    <span>⚠</span><span id="siloMsg">Two or more decisions are silo-first.</span>
+    <span class="sa-x" onclick="this.closest('.silo-alert').classList.add('off')">✕</span>
+  </div>
+  <div class="game-body">
+    <div class="main-col">
+      <div class="yr-intro">
+        <div>
+          <div class="yi-badge" id="yiBadge">📉 Year 1 — The Talent Exodus</div>
+          <div class="yi-title" id="yiTitle">Year One</div>
+          <div class="yi-sub" id="yiSub">Foundation decisions.</div>
+        </div>
+        <div class="phase-row">
+          <div class="ps cur" id="ph1">Brief</div>
+          <div class="ps" id="ph2">Decide</div>
+          <div class="ps" id="ph3">Commit</div>
+        </div>
+      </div>
+      <div class="budget-notice" id="budgetNotice">
+        <div class="bn-title">⚠ Budget Reduced — Your Past Decisions Have a Cost</div>
+        <div id="budgetNoticeItems"></div>
+        <div class="bn-final" id="budgetNoticeFinal"></div>
+      </div>
+      <div class="trust-wobbler" id="trustWobbler">
+        <div class="tw-label">⚡ Trust Effect — Triggered</div>
+        <div class="tw-body" id="trustWobblerBody"></div>
+      </div>
+      <div class="wobbler">
+        <div class="wb-type" id="wbType">⚡ Year 1 Wobbler</div>
+        <div class="wb-title" id="wbTitle">The Talent Exodus Has Begun</div>
+        <div class="wb-body" id="wbBody"></div>
+        <div class="wb-tags" id="wbTags"></div>
+      </div>
+      <div class="decisions" id="decisionsArea"></div>
+      <div class="commit-bar">
+        <div class="ci">
+          <strong id="decCount">0 of 4 + HC</strong> decisions made · Budget: <strong id="budUsed">€0M</strong> of <strong id="budTotal">€12M</strong>
+          <span id="overWarn" style="color:var(--red);margin-left:8px;display:none">⚠ Over budget</span>
+          <span id="hcWarn" style="color:var(--red);margin-left:8px;display:none">⚠ HC not fully allocated</span>
+        </div>
+        <button class="btn-commit" id="commitBtn" onclick="openModal()" disabled>Commit Decisions →</button>
+      </div>
+    </div>
+    <div class="side-col">
+      <div class="ss"><div class="sl">Leader-to-Leader Trust</div>
+        <div class="trust-box" id="trustBox" style="--tp:29%">
+          <div class="tb-row"><div class="tb-l">Trust Index</div><div class="tb-v" id="tbVal">29%</div></div>
+          <div class="tb-d" id="tbDesc">Low trust. Leaders protect their verticals.</div>
+          <div class="tb-u" id="tbUnlock">🔒 Trust &gt; 50% unlocks strategic options</div>
+        </div>
+        <div class="trust-tier-panel">
+          <div class="ttp-title">Trust Effects — Active Tier</div>
+          <div class="ttp-row" id="ttp1"><div class="ttp-dot" style="background:var(--red)"></div><span>Below 35%: −20% strategic returns</span></div>
+          <div class="ttp-row" id="ttp2"><div class="ttp-dot" style="background:var(--warn)"></div><span>35–49%: −10% strategic returns</span></div>
+          <div class="ttp-row" id="ttp3"><div class="ttp-dot" style="background:var(--green)"></div><span>50–64%: Unlocked. Neutral</span></div>
+          <div class="ttp-row" id="ttp4"><div class="ttp-dot" style="background:#1a6b42"></div><span>65%+: +15% strategic returns</span></div>
+        </div>
+      </div>
+      <div class="ss"><div class="sl">Headcount</div>
+        <div class="hc-summary-box">
+          <div class="hsb-title">Total Headcount</div>
+          <div class="hsb-total" id="sideHCTotal">4,000</div>
+          <div class="hsb-label">employees</div>
+          <div class="hsb-growth">+<span id="sideHCNew">400</span> new HC to allocate this year</div>
+        </div>
+        <div class="hc-dept-bars" id="sideHCBars"></div>
+      </div>
+      <div class="ss"><div class="sl">Organisation Health</div>
+        <div class="compound-drift" id="compoundDrift">
+          <div class="cd-title">⚠ Auto-Compound Drift Active</div>
+          <span id="compoundDriftBody"></span>
+        </div>
+        <div class="hbars">
+          <div class="hbar"><div class="hb-head"><span class="hb-n">Leader Trust</span><span class="hb-v" id="sh1">29%</span></div><div class="hb-track"><div class="hb-fill hf-r" id="sf1" style="width:29%"></div></div></div>
+          <div class="hbar"><div class="hb-head"><span class="hb-n">Collaboration</span><span class="hb-v" id="sh2">34%</span></div><div class="hb-track"><div class="hb-fill hf-r" id="sf2" style="width:34%"></div></div></div>
+          <div class="hbar"><div class="hb-head"><span class="hb-n">Leadership Maturity</span><span class="hb-v" id="sh3">28%</span></div><div class="hb-track"><div class="hb-fill hf-r" id="sf3" style="width:28%"></div></div></div>
+          <div class="hbar"><div class="hb-head"><span class="hb-n">Speak-up Resolution</span><span class="hb-v" id="sh4">22%</span></div><div class="hb-track"><div class="hb-fill hf-r" id="sf4" style="width:22%"></div></div></div>
+          <div class="hbar"><div class="hb-head"><span class="hb-n">Enterprise Alignment</span><span class="hb-v" id="sh5">31%</span></div><div class="hb-track"><div class="hb-fill hf-r" id="sf5" style="width:31%"></div></div></div>
+          <div class="hbar"><div class="hb-head"><span class="hb-n">Innovation Capacity</span><span class="hb-v" id="sh6">48%</span></div><div class="hb-track"><div class="hb-fill hf-r" id="sf6" style="width:48%"></div></div></div>
+        </div>
+      </div>
+      <div class="ss"><div class="sl">The Connected System</div>
+        <div class="sys-chain">
+          <div class="sys-row"><div class="sf">Poor behaviours</div><div class="sa">→</div><div class="st">Speak-ups ↑</div><div class="ss-stat ss-hot" id="cn1">HOT</div></div>
+          <div class="sys-row"><div class="sf">Speak-ups ↑</div><div class="sa">→</div><div class="st">Employer brand ↓</div><div class="ss-stat ss-hot" id="cn2">HOT</div></div>
+          <div class="sys-row"><div class="sf">Brand ↓</div><div class="sa">→</div><div class="st">Hiring difficulty ↑</div><div class="ss-stat ss-hot" id="cn3">HOT</div></div>
+          <div class="sys-row"><div class="sf">Low trust</div><div class="sa">→</div><div class="st">Slow decisions</div><div class="ss-stat ss-hot" id="cn4">HOT</div></div>
+          <div class="sys-row"><div class="sf">Silo decisions</div><div class="sa">→</div><div class="st">Missed market share</div><div class="ss-stat ss-hot" id="cn5">HOT</div></div>
+        </div>
+      </div>
+      <div class="ss"><div class="sl">Budget</div>
+        <div class="bdg-row">
+          <div class="bdg-ring"><svg class="bdg-svg" viewBox="0 0 68 68"><circle class="bdg-bg" cx="34" cy="34" r="28"/><circle class="bdg-fill" id="bdgArc" cx="34" cy="34" r="28" stroke-dasharray="0 176"/></svg></div>
+          <div><div class="bdg-spent" id="bdgSpent">€0M</div><div class="bdg-of">of <span id="bdgTot">€12M</span></div><div class="bdg-left bl-ok" id="bdgLeft">€12M remaining</div></div>
+        </div>
+      </div>
+      <div class="ss"><div class="sl">Decision Character</div>
+        <div class="bal-list">
+          <div class="bal-row"><div class="bl">Silo-first</div><div class="bt"><div class="bf-l" id="bSilo" style="width:55%"></div><div class="bf-r" id="bEnt" style="width:8%"></div></div><div class="br">Enterprise</div></div>
+          <div class="bal-row"><div class="bl">Reactive</div><div class="bt"><div class="bf-l" id="bReact" style="width:50%"></div><div class="bf-r" id="bStrat" style="width:12%"></div></div><div class="br">Strategic</div></div>
+          <div class="bal-row"><div class="bl">Short-term</div><div class="bt"><div class="bf-l" id="bShort" style="width:48%"></div><div class="bf-r" id="bLong" style="width:15%"></div></div><div class="br">Long-term</div></div>
+        </div>
+      </div>
+      <div class="ss"><div class="sl">Facilitation Prompts</div><div id="promptsArea"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="results" class="screen">
+  <div class="rw">
+    <div class="re" id="resEye">Year 1 Outcomes</div>
+    <div class="rt" id="resTitle">The Numbers Are In</div>
+    <div class="rs" id="resSub">Your decisions have been processed.</div>
+    <div class="adapt-badge" id="adaptBadge">🎯 <span id="adaptMsg"></span></div>
+    <div class="mult-callout" id="multCallout"><div class="mc-ico">⚡</div><div class="mc-txt" id="multCalloutTxt"></div></div>
+    <div class="compound-panel" id="compoundPanel"><div class="cp-title">🔗 Auto-Compounding Effects This Year</div><div id="compoundItems"></div></div>
+    <div class="hc-results">
+      <div class="hcr-title">👥 Headcount — This Year</div>
+      <div class="hcr-grid">
+        <div class="hcr-stat"><div class="hcr-val" id="hcrTotal">—</div><div class="hcr-lbl">Total HC</div></div>
+        <div class="hcr-stat"><div class="hcr-val" id="hcrNew">—</div><div class="hcr-lbl">New HC Allocated</div></div>
+        <div class="hcr-stat"><div class="hcr-val" id="hcrGrowth">—</div><div class="hcr-lbl">Effective Growth</div></div>
+      </div>
+      <div class="hcr-depts" id="hcrDepts"></div>
+    </div>
+    <div class="mets-grid" id="metsGrid"></div>
+    <div style="font-size:8px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:rgba(79,212,144,.6);margin-bottom:10px">Bolt Operating Principles — How You Did</div>
+    <div class="grades" id="gradesRow"></div>
+    <div style="font-size:8px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:rgba(79,212,144,.6);margin-bottom:10px;margin-top:20px">What Your Decisions Revealed</div>
+    <div class="insights" id="insightsArea"></div>
+    <div class="submit-score-box">
+      <div class="ssb-title">📊 Submit to Leaderboard</div>
+      <div class="ssb-desc">Share your Year <span id="submitYrLabel">1</span> scores with the facilitator view.</div>
+      <div class="ssb-row">
+        <button class="btn-submit-score" id="submitScoreBtn" onclick="submitScore()">Submit Scores →</button>
+        <span class="ssb-status" id="submitStatus"></span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;margin-top:8px;">
+      <button class="btn-next" onclick="nextYear()" id="btnNext" disabled>Proceed to Year 2 →</button>
+      <span style="font-size:9px;font-weight:500;color:rgba(255,255,255,.28)" id="yrCount">Year 1 of 3</span>
+    </div>
+  </div>
+</div>
+
+<!-- FINAL -->
+<div id="final" class="screen">
+  <nav class="topbar"><span class="tb-logo">Bolt <em>Forward</em></span><span class="tb-tag">Simulation Complete — Debrief</span></nav>
+  <div class="fw">
+    <div class="final-hero">
+      <div class="fg-big" id="fGrade">B</div>
+      <div class="fh-r">
+        <div class="fh-verdict" id="fVerdict">Capable Leaders.<br>Unrealised Potential.</div>
+        <div class="fh-ctx" id="fCtx"></div>
+      </div>
+    </div>
+    <div style="font-size:9px;font-weight:600;letter-spacing:.38em;text-transform:uppercase;color:var(--green);margin-bottom:10px">3-Year Performance vs Starting Position</div>
+    <div class="fkpis" id="finalKPIs"></div>
+    <div class="deb-cols">
+      <div class="deb-card"><div class="deb-title">What This Team Did Well</div><div id="debStr"></div></div>
+      <div class="deb-card"><div class="deb-title">Where to Look Honestly</div><div id="debRef"></div></div>
+    </div>
+    <div class="fac-box">
+      <div class="fac-h">Facilitator Debrief Guide</div>
+      <div class="fac-grid">
+        <div><div class="fac-q">The Mirror Question</div><div class="fac-t">"Where did your vertical interest and the enterprise interest diverge — and which one won?"</div></div>
+        <div><div class="fac-q">The System Question</div><div class="fac-t">"Where is the connected system already running in your real organisation — and what are you actually doing about it?"</div></div>
+        <div><div class="fac-q">The Commitment</div><div class="fac-t">"Name one leadership behaviour — yours, not someone else's — that you will change in the next 30 days."</div></div>
+      </div>
+    </div>
+    <button class="btn-restart" onclick="location.reload()">↺ Run New Simulation</button>
+  </div>
+</div>
+
+<!-- FACILITATOR -->
+<div id="facilitator" class="screen">
+  <div class="fac-view">
+    <div class="fac-hdr">
+      <div><div class="fac-hdr-logo">Bolt <em>Forward</em></div><div class="fac-hdr-sub">Facilitator Leaderboard</div></div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-fac" onclick="renderFacilitator()">↺ Refresh</button>
+        <button class="btn-fac" onclick="showScreen('splash')">← Back</button>
+      </div>
+    </div>
+    <div class="yr-tabs" id="facTabs"></div>
+    <div id="facContent"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal-box">
+    <div class="modal-t">Commit Your Decisions</div>
+    <div class="modal-b" id="modalBody"></div>
+    <div class="modal-a">
+      <button class="btn-cancel" onclick="closeModal()">Review Again</button>
+      <button class="btn-confirm" onclick="commit()">Commit & See Outcomes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIGURATION — edit these two values then re-upload
+// ═══════════════════════════════════════════════════════════
+const JSONBIN_ID  = '69b43eecaa77b81da9e0d31e';
+const JSONBIN_KEY = '$2a$10$BxWd00uUtnDWzoIrgywW8.WBn2qHQH9oFTpWpZ7HodJrlNvQ0aJFe';
+// ═══════════════════════════════════════════════════════════
+
+const C = '€';
+const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
+
+// ─── STORAGE ───
+const HEADERS = {
+  'Content-Type': 'application/json',
+  'X-Master-Key': JSONBIN_KEY,
+  'X-Access-Key': JSONBIN_KEY
+};
+
+async function saveScore(tn,yr,m,hc,g,ov){
+  try{
+    const r=await fetch(JSONBIN_URL+'/latest',{headers:HEADERS});
+    if(!r.ok)throw new Error(`Read ${r.status}`);
+    const data=await r.json();
+    const scores=Array.isArray(data.record?.scores)?data.record.scores:[];
+    const filtered=scores.filter(s=>!(s.teamName===tn&&s.year===yr));
+    filtered.push({teamName:tn,year:yr,metrics:m,hcDepts:hc,grades:g,overall:ov,ts:Date.now()});
+    const w=await fetch(JSONBIN_URL,{method:'PUT',headers:HEADERS,body:JSON.stringify({scores:filtered})});
+    if(!w.ok)throw new Error(`Write ${w.status}: ${await w.text()}`);
+  }catch(e){console.error('saveScore:',e);throw e;}
+}
+
+async function loadAllScores(){
+  try{
+    const r=await fetch(JSONBIN_URL+'/latest',{headers:HEADERS});
+    if(!r.ok)return[];
+    const data=await r.json();
+    return Array.isArray(data.record?.scores)?data.record.scores:[];
+  }catch(e){console.warn('loadAllScores:',e);return[];}
+}
+
+// ─── TRUST ───
+function getTrustTier(t){
+  if(t<35)return{mult:.80,label:'Below 35% — −20% on strategic returns',tier:1};
+  if(t<50)return{mult:.90,label:'35–49% — −10% on strategic returns',tier:2};
+  if(t<65)return{mult:1.00,label:'50–64% — Neutral',tier:3};
+  return{mult:1.15,label:'65%+ — +15% on strategic returns',tier:4};
+}
+
+const TRUST_FIRED=new Set();
+function checkTrustWobbler(o,n){
+  const ws=[{t:50,d:'up',b:'Leader trust crossed 50% — strategic options unlocked.'},{t:65,d:'up',b:'Trust reached 65% — +15% boost multiplier now active.'},{t:35,d:'down',b:'⚠ Trust fell below 35%. 20% penalty now active on all strategic returns.'},{t:50,d:'down',b:'⚠ Trust dropped below 50%. Strategic options re-locked.'}];
+  for(const w of ws){const k=`${w.t}-${w.d}`;if(TRUST_FIRED.has(k))continue;const c=w.d==='up'?(o<w.t&&n>=w.t):(o>=w.t&&n<w.t);if(c){TRUST_FIRED.add(k);document.getElementById('trustWobblerBody').textContent=w.b;document.getElementById('trustWobbler').classList.add('show');setTimeout(()=>document.getElementById('trustWobbler').classList.remove('show'),8000);}}
+}
+
+// ─── AUTO-COMPOUND ───
+function applyAutoCompound(m,o){
+  const log=[];const ents=Object.values(o).filter(x=>x==='ent').length;const silos=Object.values(o).filter(x=>x==='silo').length;
+  const sr=silos>=3?10:silos>=2?6:ents>=3?-4:3;m.speakScore=Math.min(100,Math.max(5,m.speakScore+sr));
+  if(sr>0)log.push({h:'Speak-up cases compounding',b:`Volume drifted +${sr} points.`});else log.push({h:'Speak-up volume reducing',b:`Enterprise-first choices slowed the chain by ${Math.abs(sr)} points.`});
+  if(m.speakScore>70){const ad=silos>=2?3:1;m.attrition=Math.min(55,m.attrition+ad);log.push({h:'Attrition pressure: compounding',b:`High speak-up volume sustaining pressure (+${ad}pp).`});}
+  if(ents<2){const td=silos>=3?-5:silos>=2?-3:-1;m.trust=Math.max(5,m.trust+td);if(td<0)log.push({h:'Leader trust eroding',b:`Trust drifted ${td} points.`});}
+  if(!o.colab||o.colab!=='ent'){const cd=silos>=3?-4:-2;m.colab=Math.max(5,m.colab+cd);log.push({h:'Collaboration index drifting',b:`Without structural investment, alignment eroded by ${Math.abs(cd)} points.`});}
+  if(m.speakScore>70&&m.attrition>25){m.market=Math.max(5,m.market-1);log.push({h:'Market share: passive erosion',b:'Combined attrition and brand damage reaching commercial execution.'});}
+  return log;
+}
+
+// ─── DYNAMIC BUDGET ───
+function computeDynamicBudget(base){
+  const m=S.metrics;const d=[];let t=0;
+  const md=34-m.market;if(md>0){const c=Math.round(md*.5*10)/10;d.push({reason:`Market share down ${md.toFixed(1)}pp from baseline`,amount:c,detail:'Board confidence eroding — discretionary budget withdrawn.'});t+=c;}
+  const ae=m.attrition-28;if(ae>0){const c=Math.round(ae*.3*10)/10;d.push({reason:`Attrition ${ae.toFixed(1)}pp above baseline`,amount:c,detail:'Unplanned recruitment costs absorbed into budget.'});t+=c;}
+  if(m.speakScore>70){d.push({reason:'Speak-up volume still critical',amount:1.0,detail:`Legal and HR investigation time — ${C}1M reallocated.`});t+=1.0;}
+  if(ae>0&&md>0){d.push({reason:'Simultaneous people & market crisis',amount:1.0,detail:`Compounding cost of two crises — additional ${C}1M absorbed.`});t+=1.0;}
+  if(S.opsBonusBudget>0){d.push({reason:'Operations efficiency carry-forward',amount:-S.opsBonusBudget,detail:`+${C}${S.opsBonusBudget.toFixed(1)}M efficiency gain from prior year Operations investment.`});t-=S.opsBonusBudget;}
+  return{budget:Math.max(6,Math.round((base-t)*10)/10),deductions:d};
+}
+
+// ─── HC GROWTH ───
+function computeHCGrowth(){
+  const m=S.metrics;const base=Math.round(S.totalHC*.10);let mod=0;
+  const ae=m.attrition-28;if(ae>0)mod-=Math.round(ae*20);
+  if(m.enps>20)mod+=100;else if(m.enps>0)mod+=50;
+  if(m.market<30)mod-=100;
+  const rb=Math.floor((m.revenue-180)/20)*50;if(rb>0)mod+=rb;
+  if(m.speakScore>70)mod-=80;
+  return{total:Math.max(50,base+mod)};
+}
+
+// ─── STATE ───
+const S={
+  teamName:'',year:1,dec:{},cost:{},orient:{},
+  hcAlloc:{Recruitment:0,Operations:0,Marketing:0,Tech:0,Sales:0,'G&A':0},
+  hcDepts:{Recruitment:250,Operations:1000,Marketing:500,Tech:1000,Sales:500,'G&A':750},
+  totalHC:4000,newHCAvailable:400,
+  metrics:{revenue:180,market:34,enps:-12,attrition:28,speakScore:85,trust:29,colab:34,maturity:28,resolution:22,alignment:31,innovation:48},
+  history:[],year3Theme:null,compoundLog:[],currentBudget:12,budgetDeductions:[],
+  opsBonusBudget:0,mandatoryHC:{},lockedHC:{},currentDecisions:[]
+};
+const BASE_BUDGETS={1:12,2:12,3:8};
+const DEPTS=['Recruitment','Operations','Marketing','Tech','Sales','G&A'];
+const DEPT_IMPACTS={
+  Recruitment:{label:'Revenue & market share (backfill speed)',revenue:0.015,market:0.005},
+  Operations:{label:'Budget efficiency (carry-forward next year)',opsBudget:0.02},
+  Marketing:{label:'eNPS & employer brand',enps:0.04,speakScore:-0.03},
+  Tech:{label:'Innovation & competitive response',innovation:0.05},
+  Sales:{label:'Revenue & market share (direct output)',revenue:0.025,market:0.008},
+  'G&A':{label:'Trust & enterprise alignment',trust:0.04,alignment:0.03}
+};
+
+// ─── YEAR CONTENT ───
+const Y1={badge:'📉 Year 1 — The Talent Exodus',title:'Year One',sub:'Foundation decisions — and your first headcount allocation. The patterns you establish now compound over three years.',wbType:'⚡ Year 1 Wobbler — People Crisis',wbTitle:'The Talent Exodus Has Begun',wbBody:'28% of your workforce left in the last 12 months. Speak-up cases have risen 47% year-on-year citing poor leadership behaviour. Your Glassdoor rating is 2.6. Two top revenue-generating leaders are named in formal complaints. Your hiring pipeline has slowed. This is a people, culture and commercial crisis — and it is compounding.',wbTags:[['🔴 Record Attrition','r'],['🔴 Speak-Up Crisis','r'],['🟡 Employer Brand Damage','a'],['🔴 Hiring Difficulty','r'],['🟡 Board Attention','a']],prompts:[{type:'Root Cause Lens',text:'Attrition of 28% is a symptom, not a cause. What is driving it — and are your decisions actually addressing that?'},{type:'HC Trade-off',text:'You have 400 new heads to allocate. Every department wants more. Which bets actually support your leadership decisions?'},{type:'System Thinking',text:'Your HC allocation and leadership decisions interact. Where are they aligned — and where are they contradicting each other?'}]};
+const Y2={badge:'🌊 Year 2 — The Disruption Wave',title:'Year Two',sub:'Your Year 1 decisions are embedded. Your HC base has shifted. And the market just raised the stakes.',wbType:'⚡ Year 2 Wobbler — Market Threat',wbTitle:'A Competitor Enters at 40% Lower Cost',wbBody:"A tech-native challenger has launched into your core market at 40% lower cost through AI-driven operations. They've captured 3pp of market share in 6 months. Their Glassdoor is 4.4. They're targeting your best people. The board is asking: do you have the leadership capability to respond at speed, and do your leaders trust each other enough to execute a joined-up strategy?",wbTags:[['🔴 Market Share Threat','r'],['🔴 Talent Poaching','r'],['🟡 Board Pressure','a'],['🟡 Speed Required','a'],['🔴 Leadership Alignment Test','r']],prompts:[{type:'Cause & Effect',text:'The auto-compound system has been running since Year 1. Which metrics surprised you — and why?'},{type:'HC Strategy',text:'Your available HC was shaped by Year 1 performance. Does your allocation double down — or try to correct?'},{type:'The Pattern',text:'Are you making the same types of decisions as last year, or are you learning from the outcomes?'}]};
+const Y3_THEMES={
+  trust:{badge:'🔒 Year 3 — The Trust Reckoning',title:'Year Three',sub:'Leader trust is your most critical unresolved challenge.',wbType:'⚡ Year 3 Wobbler — Leadership Fracture',wbTitle:'Two Senior Leaders Go Public With a Culture Complaint',wbBody:'Two top-performing leaders have signed an open letter describing the culture as "unsafe, political and fundamentally broken." It has been shared 4,000 times on LinkedIn. The board demands a response within 48 hours. Your HR Director has resigned.',wbTags:[['🔴 Leadership Crisis','r'],['🔴 Board Emergency','r'],['🟡 Media Attention','a'],['🔴 Mass Attrition Risk','r']]},
+  colab:{badge:'🏗️ Year 3 — The Silo Collapse',title:'Year Three',sub:'Siloed leadership is visibly costing you market share and execution speed.',wbType:'⚡ Year 3 Wobbler — Execution Failure',wbTitle:'Major Strategic Initiative Collapses Due to Leadership Conflict',wbBody:`Your highest-profile cross-divisional initiative — expected to deliver ${C}25M — has stalled. A consultant has been brought in to diagnose why this organisation cannot execute at scale.`,wbTags:[['🔴 €25M Initiative at Risk','r'],['🔴 Board Confidence Low','r'],['🟡 Consultant Scrutiny','a'],['🟡 Execution Credibility','a']]},
+  attrition:{badge:'🚪 Year 3 — The Exodus Accelerates',title:'Year Three',sub:"Attrition never recovered. Now it's hitting the leadership layer itself.",wbType:'⚡ Year 3 Wobbler — Leadership Attrition',wbTitle:'Three Senior Leaders Hand In Their Notice This Quarter',wbBody:`Three of your top 10 senior leaders resigned citing leadership culture. They represent over ${C}40M of revenue ownership. Two are joining competitors.`,wbTags:[['🔴 Senior Leadership Attrition','r'],['🔴 Revenue at Risk','r'],['🟡 Knowledge Loss','a'],['🔴 Competitor Gains Your People','r']]},
+  market:{badge:'📉 Year 3 — The Market Closes In',title:'Year Three',sub:'Market share is declining, budget is cut, and the board is watching.',wbType:'⚡ Year 3 Wobbler — Budget Cut & Rankings Drop',wbTitle:"Budget Cut 33% and You're Ranked #47 as an Employer",wbBody:"A market slowdown triggered a mandatory cost reduction. A talent survey ranked you 47th out of 60. Three senior leaders have received approaches from competitors.",wbTags:[['🔴 Budget Cut','r'],['🟡 Industry Ranking Drop','a'],['🔴 Talent at Risk','r'],['🟡 Board Scrutiny','a']]}
+};
+function getYear3Theme(){const m=S.metrics;const sc={trust:m.trust,colab:m.colab,attrition:100-m.attrition,market:m.market*1.4};const s=Object.entries(sc).sort((a,b)=>a[1]-b[1]);S.year3Theme=s[0][0];return S.year3Theme;}
+function getYear3Meta(){const t=getYear3Theme();return{...Y3_THEMES[t],prompts:[{type:'The Reckoning',text:'Three years of decisions and compounding have produced this moment. What patterns do you see?'},{type:'Constraint Reveals Character',text:'With a tighter budget, reduced HC and higher stakes — what did you protect and what did you cut?'},{type:'The Honest Question',text:'If your employees could see your decision-making in this room — what would they think?'}]};}
+function getYearMeta(yr){return yr===1?Y1:yr===2?Y2:getYear3Meta();}
+
+// ─── DECISIONS ───
+const D1=[
+  {id:'colab',icon:'🤝',name:'Cross-Functional Collaboration',sub:'This decision affects what other options are available to you',bud:`Up to ${C}4M`,crit:true,opts:[
+    {t:'Keep leaders focused on their own P&L and delivery targets — coordination through existing channels',d:'With attrition at 28% and delivery under pressure, maintaining vertical focus keeps accountability clear. Existing escalation routes handle cross-functional issues. The question is whether those routes move at the speed the current environment requires.',o:'silo',c:0.0,hc:0,hcDept:null},
+    {t:'Establish permanent Enterprise Councils — joint accountability for outcomes that cross divisional lines',d:'Moves cross-functional coordination from informal goodwill into structured governance. Leaders become accountable for enterprise results alongside their own. High implementation effort — and organisations that have built this consistently report it is more durable than cultural alignment alone when pressure increases.',o:'ent',c:4.0,hc:15,hcDept:'G&A'},
+    {t:'Convene a company-wide leadership summit to agree shared priorities and ways of working',d:'Brings the full leadership population together to build alignment and shared intent. Creates a meaningful shared experience. The durability of alignment reached in a room versus alignment embedded in governance tends to be tested quickly on return to the day job.',o:'neu',c:1.5,hc:5,hcDept:'G&A'}
+  ]},
+  {id:'people',icon:'🧠',name:'Leadership Accountability',sub:'How you respond to the speak-up spike and leadership behaviour data',bud:`Up to ${C}4M`,opts:[
+    {t:'Implement enterprise-wide behavioural standards with 360 feedback, coaching and consequence management',d:'Creates a consistent floor of expected leadership behaviour across the organisation, applying equally to high performers. The most expensive option here — and the one most likely to surface resistance from those whose performance metrics have previously insulated them from scrutiny.',o:'ent',c:4.0,hc:20,hcDept:'G&A'},
+    {t:'Commission a leadership diagnostic — build an evidence base before committing to an intervention',d:'Reduces the risk of investing in the wrong solution by grounding action in data. The organisation continues operating in its current pattern while findings are gathered and debated.',o:'neu',c:2.0,hc:8,hcDept:'G&A'},
+    {t:'Consolidate speak-up case management within HR — return leadership bandwidth to commercial delivery',d:'A functionally logical response. HR is better resourced to manage cases at volume, and senior leaders maintain delivery focus. The question of who owns the culture — and what that ownership looks like — sits alongside this decision.',o:'silo',c:0.0,hc:0,hcDept:null}
+  ]},
+  {id:'talent',icon:'🎯',name:'Talent Strategy',sub:'How you address 28% attrition and your hiring difficulty',bud:`Up to ${C}3M`,opts:[
+    {t:'Rebuild the employer brand and EVP — change the conditions that drive attrition, not just its consequences',d:'Positions the organisation to attract and retain on the basis of something real. The slowest option to show results and the only one that changes the underlying dynamic rather than managing around it.',o:'ent',c:3.0,hc:10,hcDept:'Recruitment'},
+    {t:'Scale flexible and contract resourcing — fill vacancies fast and maintain operational capacity',d:'Responds to the immediate gap without the overhead of permanent hiring cycles. Higher unit cost, and the question of cultural continuity sits alongside the operational benefits.',o:'silo',c:0.5,hc:0,hcDept:null},
+    {t:'Introduce retention bonuses for high performers and business-critical roles',d:'Targets financial risk at the people whose departure would have the greatest commercial impact. Fast to implement and measurable. The conditions driving attrition across the broader population remain in place.',o:'neu',c:1.5,hc:0,hcDept:null}
+  ]},
+  {id:'strat',icon:'📈',name:'Strategic Investment',sub:'Where you place your capital bet this year',bud:`Up to ${C}5M`,opts:[
+    {t:'Invest in internal capability — leadership infrastructure, people systems and organisational foundations',d:"Prioritises the conditions for sustainable performance over short-term commercial outputs. Returns are slower to materialise and harder to attribute directly. The relationship between organisational health and sustained commercial performance is well-evidenced over three-to-five year horizons.",o:'ent',c:5.0,hc:0,hcDept:null},
+    {t:'Protect margin — reduce costs, optimise operations and stabilise financial performance',d:'Demonstrates financial discipline and reduces risk during a period of internal instability. Growth initiatives paused here tend to restart in a more competitive market with less organisational momentum behind them.',o:'silo',c:1.5,hc:0,hcDept:null},
+    {t:'Accelerate into a new market — build commercial momentum while the competitive window is open',d:'Creates new revenue streams and strengthens market position. Execution depends on the organisation having the capacity and stability to deliver a major new initiative — both of which are currently under strain.',o:'neu',c:3.5,hc:15,hcDept:'Sales'}
+  ]}
+];
+const D2=[
+  {id:'colab',icon:'🤝',name:'Enterprise Response to Competitor',sub:'Do your leaders unite — or each protect their own vertical?',bud:`Up to ${C}5M`,crit:true,opts:[
+    {t:'Stand up a cross-functional Competitive Response Unit — one integrated team, one plan',d:'Concentrates decision-making and execution accountability in a single team drawn from across the business. Eliminates the coordination overhead that slows a fragmented response. Requires leaders to operate outside their vertical — how possible that is depends on what was built in Year 1.',o:'ent',c:5.0,hc:18,hcDept:'G&A'},
+    {t:'Each division develops and executes its own competitive response plan',d:'Enables fast mobilisation without the friction of enforced alignment. Each vertical responds where its leaders have deepest expertise. Coherence across the response — to customers, to the market, to the board — depends on coordination that vertical structures were not designed to provide.',o:'silo',c:0.5,hc:0,hcDept:null},
+    {t:'Bring in an experienced external strategy partner to lead the competitive response',d:'Injects specialist capability and independent perspective at speed. External partners can move without internal political friction. The strategic response is designed and owned by people who will not be here to execute it.',o:'neu',c:2.5,hc:0,hcDept:null}
+  ]},
+  {id:'people',icon:'🧠',name:'Protecting Your People Through Disruption',sub:'How you respond to competitor talent poaching and internal uncertainty',bud:`Up to ${C}5M`,opts:[
+    {t:"Communicate the full picture — share the competitive situation, the strategy and each person's role in it",d:"Replaces speculation with information. People make better decisions about their futures when they understand the organisation's direction. Requires leaders to be comfortable with a level of transparency that most find uncomfortable, particularly when the picture is mixed.",o:'ent',c:2.0,hc:8,hcDept:'G&A'},
+    {t:'Launch a targeted retention programme — competitive packages for the top quartile of performers',d:'Addresses the immediate commercial risk of losing the people whose departure would have the greatest impact. How the remaining 75% of the organisation experiences this decision is a separate and consequential question.',o:'neu',c:5.0,hc:0,hcDept:null},
+    {t:'Concentrate leadership attention on critical talent — manage the broader population through standard HR processes',d:'Focuses scarce leadership bandwidth where commercial return is highest. Operationally pragmatic under pressure. The experience of the broader population — and what it does to engagement and future attrition — is part of the same calculation.',o:'silo',c:2.5,hc:0,hcDept:null}
+  ]},
+  {id:'strat',icon:'📈',name:'Strategic Competitive Move',sub:'How you respond to a 40% cost-structure advantage in the market',bud:`Up to ${C}6M`,opts:[
+    {t:'Commit to an AI-powered operations transformation — close the cost gap structurally over two years',d:'The only response that addresses the competitive threat at its source. The implementation demands are significant — a cross-functional, multi-year programme that requires the organisation to operate as a unit. The conditions for success were either built in Year 1 or they were not.',o:'ent',c:6.0,hc:25,hcDept:'Tech',trustGated:true},
+    {t:'Reposition on premium quality and service — compete on value delivered, not cost',d:'A strategically coherent response if the brand and delivery capability can sustain a premium position. Protects margin in the near term. The structural cost disadvantage does not reduce — the question is how long the premium position holds as the competitor matures.',o:'neu',c:3.5,hc:12,hcDept:'Marketing'},
+    {t:'Pursue an acquisition — buy market share and capability rather than building it',d:'The fastest route to scale and the most visible signal of strategic intent. Integration demands — cultural, operational, leadership — land on a business already managing significant internal complexity.',o:'neu',c:5.5,hc:0,hcDept:null}
+  ]},
+  {id:'talent',icon:'🎯',name:'Building Competitive Talent Advantage',sub:'How you turn your people into a competitive weapon, not a liability',bud:`Up to ${C}4M`,opts:[
+    {t:'Go public — launch an employer brand campaign that positions your culture as a competitive differentiator',d:'Creates visibility in the talent market at a moment when the competitor is actively recruiting. The strength of the campaign is directly proportional to the credibility of the culture it describes. Candidates investigate before they apply.',o:'ent',c:4.0,hc:12,hcDept:'Marketing'},
+    {t:'Accelerate internal talent — fast-track high performers into broader roles and build the pipeline from within',d:'Invests in the people already here and sends a strong retention signal. Requires development infrastructure to support people moving into stretching roles — the quality of that infrastructure depends on Year 1 investment.',o:'ent',c:2.5,hc:0,hcDept:null},
+    {t:'Pause additional talent investment — stabilise first, then invest once the strategic direction is clear',d:'Preserves capital during a period of strategic uncertainty. The talent market does not pause while the organisation decides — and a competitor is actively recruiting your people.',o:'silo',c:0.0,hc:0,hcDept:null}
+  ]}
+];
+const D3=[
+  {id:'colab',icon:'🤝',name:'Enterprise vs Vertical — Final Test',sub:'Under maximum pressure, do your leaders choose the enterprise?',bud:`Up to ${C}4M`,crit:true,opts:[
+    {t:'Restructure leadership accountability — tie performance evaluation to enterprise outcomes, not just vertical delivery',d:'Changes the incentive structure rather than the conversation. Leaders are assessed on what they contribute to the enterprise, not just what they deliver in their own area. The governance change is straightforward to design and requires significant will to implement.',o:'ent',c:4.0,hc:15,hcDept:'G&A'},
+    {t:'Convene an emergency cross-leadership session to agree the Year 3 response collectively',d:'Creates a moment to share perspectives and agree a collective response. The quality of that conversation depends on the trust that exists between the people in the room.',o:'neu',c:1.5,hc:0,hcDept:null},
+    {t:'Empower leaders to respond based on their own judgement — trust their expertise for their area',d:'Respects leadership accountability and avoids the overhead of mandated alignment in a year where speed matters. The pattern of autonomous decision-making under pressure — and its effect on enterprise coherence — has been visible throughout the simulation.',o:'silo',c:0.0,hc:0,hcDept:null}
+  ]},
+  {id:'people',icon:'🧠',name:'Leadership Legacy Investment',sub:'What leadership culture do you leave behind after three years?',bud:`Up to ${C}5M`,opts:[
+    {t:'Institutionalise leadership accountability — embed standards, consequences and development as permanent operating infrastructure',d:'Moves culture from something the organisation aspires to into something it is governed by. Designed to outlast the people who built it. The highest-cost option — and the one most likely to generate friction from the leaders it affects most.',o:'ent',c:5.0,hc:20,hcDept:'G&A'},
+    {t:'Hold the line — consolidate what has been built without adding new commitments in a pressured year',d:'A considered response to a constrained year. Protects gains from Years 1 and 2. Culture does not maintain itself passively — the question is whether consolidation and regression look different in the short term.',o:'silo',c:0.0,hc:0,hcDept:null},
+    {t:'Commission a leadership effectiveness review — take stock before committing further investment',d:"Generates an evidence base for future decisions. The value of the insight depends entirely on the organisation's willingness to act on what it finds.",o:'neu',c:2.0,hc:0,hcDept:null}
+  ]},
+  {id:'strat',icon:'📈',name:'Year 3 Strategic Bet',sub:'Your final capital allocation — what do you prioritise?',bud:`Up to ${C}5M`,opts:[
+    {t:'Double down — accelerate the transformation and fully commit to the direction set across all three years',d:'Compounds the investment already made and signals conviction to every stakeholder watching. Returns are significantly higher when built on strong foundations from Years 1 and 2 — and significantly lower when they are not.',o:'ent',c:5.0,hc:25,hcDept:'Tech'},
+    {t:'Consolidate — focus resources on what is working and manage costs carefully through a difficult year',d:'Reduces execution risk and preserves optionality. Consolidation and stagnation are operationally similar and strategically different — the distinction matters to the people watching.',o:'neu',c:2.5,hc:0,hcDept:null},
+    {t:'Redirect investment based on what Year 3 pressure has revealed — pivot to where the opportunity is clearest',d:"Demonstrates strategic agility. The board reads pivots in different ways depending on what preceded them — a change of direction in Year 3 invites questions about the conviction behind Years 1 and 2.",o:'neu',c:3.5,hc:12,hcDept:'Sales'}
+  ]},
+  {id:'talent',icon:'🎯',name:'Sustaining the Talent Foundation',sub:'Can you hold onto your people through maximum pressure?',bud:`Up to ${C}4M`,opts:[
+    {t:'Build the next generation — graduate pipeline, internal mobility programmes and structured succession investment',d:"The longest-horizon choice available in Year 3. Reduces structural dependence on external hiring and sends a clear signal about the organisation's confidence in its own future. The return is not visible this year — and is substantial over the following three.",o:'ent',c:4.0,hc:20,hcDept:'Recruitment'},
+    {t:'Deploy targeted financial retention — packages for the roles most exposed to competitive poaching',d:'A direct and measurable response to an immediate risk. The conditions that make people genuinely want to stay — and the conditions that make financial incentives insufficient — remain the same after the packages are issued.',o:'neu',c:2.0,hc:0,hcDept:null},
+    {t:'Stand down talent investment for the year — redirect budget to areas with more visible return',d:'A rational allocation decision under pressure. The talent market continues to move while investment is paused — the cost of that movement tends to appear in the numbers 6 to 12 months later.',o:'silo',c:0.0,hc:0,hcDept:null}
+  ]}
+];
+function getDecisions(yr){const sh=a=>[...a].sort(()=>Math.random()-.5);return(yr===1?D1:yr===2?D2:D3).map(d=>({...d,opts:sh(d.opts)}));}
+
+// ─── HELPERS ───
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function showFacilitator(){showScreen('facilitator');renderFacilitator();}
+function onTeamNameInput(){S.teamName=document.getElementById('teamNameInput').value.trim();document.getElementById('goBtn').disabled=!S.teamName;}
+function fmt(n){return n.toLocaleString();}
+function cur(n){return `${C}${n}M`;}
+
+function startGame(){S.teamName=document.getElementById('teamNameInput').value.trim();document.getElementById('ghTeam').textContent=S.teamName;loadYear(1);showScreen('game');}
+
+// ─── LOAD YEAR ───
+function loadYear(yr){
+  S.year=yr;S.dec={};S.cost={};S.orient={};S.compoundLog=[];
+  S.hcAlloc={Recruitment:0,Operations:0,Marketing:0,Tech:0,Sales:0,'G&A':0};
+  S.mandatoryHC={};S.lockedHC={};
+  S.currentDecisions=getDecisions(yr);
+  const hcg=yr===1?{total:400}:computeHCGrowth();S.newHCAvailable=hcg.total;
+  let budget=BASE_BUDGETS[yr];S.budgetDeductions=[];
+  if(yr>1){const dyn=computeDynamicBudget(budget);budget=dyn.budget;S.budgetDeductions=dyn.deductions;}
+  S.currentBudget=budget;
+  document.getElementById('ghYr').textContent=`Year ${yr} of 3`;
+  document.getElementById('ghTeam').textContent=S.teamName;
+  ['kBudget','kBudSub','budTotal','bdgTot'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=i===1?`of ${cur(budget)}`:cur(budget);});
+  document.getElementById('kHC').textContent=fmt(S.totalHC);
+  document.getElementById('kHCSub').textContent=`+${fmt(S.newHCAvailable)} to allocate`;
+  document.getElementById('sideHCTotal').textContent=fmt(S.totalHC);
+  document.getElementById('sideHCNew').textContent=fmt(S.newHCAvailable);
+  const bn=document.getElementById('budgetNotice');
+  if(yr>1&&S.budgetDeductions.length){bn.classList.add('show');document.getElementById('budgetNoticeItems').innerHTML=S.budgetDeductions.map(d=>`<div class="bn-item"><div class="bn-reason">${d.reason} <span class="bn-cut">${d.amount>0?'−':'+'}${C}${Math.abs(d.amount)}M</span></div><div class="bn-detail">${d.detail}</div></div>`).join('');document.getElementById('budgetNoticeFinal').textContent=`Your available budget: ${cur(budget)} (base was ${cur(BASE_BUDGETS[yr])})`;}else bn.classList.remove('show');
+  const meta=getYearMeta(yr);
+  document.getElementById('yiBadge').textContent=meta.badge;
+  document.getElementById('yiTitle').textContent=meta.title;
+  document.getElementById('yiSub').textContent=meta.sub;
+  document.getElementById('wbType').textContent=meta.wbType;
+  document.getElementById('wbTitle').textContent=meta.wbTitle;
+  document.getElementById('wbBody').textContent=meta.wbBody;
+  document.getElementById('wbTags').innerHTML=meta.wbTags.map(([t,c])=>`<span class="wtag wt-${c}">${t}</span>`).join('');
+  document.getElementById('promptsArea').innerHTML=(meta.prompts||[]).map(p=>`<div class="prompt"><div class="pr-t">${p.type}</div><div class="pr-b">${p.text}</div></div>`).join('');
+  document.getElementById('trustWobbler').classList.remove('show');
+  renderDecisions(S.currentDecisions);renderHCCard();
+  setPhase(1);updateUI();updateTrustTierPanel();renderSideHC();
+}
+
+function renderDecisions(decSet){
+  const tier=getTrustTier(S.metrics.trust);
+  const mTag=tier.tier===4?`<span style="font-size:7px;font-weight:600;background:#e4f5ec;color:#1a6b42;padding:2px 5px;border-radius:2px;margin-left:5px">+15% boost</span>`:tier.tier<=2?`<span style="font-size:7px;font-weight:600;background:#fdecea;color:var(--red);padding:2px 5px;border-radius:2px;margin-left:5px">${tier.tier===1?'−20%':'−10%'} penalty</span>`:'';
+  document.getElementById('decisionsArea').innerHTML=decSet.map((dec,di)=>{
+    const opts=dec.opts.map(opt=>{
+      const isLocked=opt.trustGated&&S.metrics.trust<50;
+      const isSel=S.cost[dec.id]===opt.c&&S.orient[dec.id]===opt.o;
+      const ct=`<span class="opt-cost-tag">${C}${opt.c.toFixed(1)}M</span>${opt.hc>0?`<span class="opt-cost-tag oct-hc">+${opt.hc} HC → ${opt.hcDept}</span>`:''}`;
+      return `<div class="dec-opt${isLocked?' locked':''}${isSel?' sel':''}" onclick="selectOpt(this,'${dec.id}',${opt.c},'${opt.o}',${opt.hc},'${opt.hcDept||''}')">
+        ${isLocked?`<div class="lock-overlay">🔒 Requires Leader Trust &gt; 50%</div>`:''}
+        <div class="opt-radio"></div>
+        <div class="opt-body"><div class="opt-title">${opt.t}</div><div class="opt-desc">${opt.d}</div><div class="opt-costs">${ct}</div></div>
+      </div>`;
+    }).join('');
+    const cb=dec.crit?`<span class="ent-badge">ENTERPRISE CRITICAL</span>`:'';
+    const sm=dec.id==='strat'?mTag:'';
+    return `<div class="dec-card" style="animation-delay:${di*.07}s"><div class="dec-hd"><div class="dh-l"><span class="dh-ico">${dec.icon}</span><div><div class="dh-name">${dec.name}${cb}${sm}</div><div class="dh-sub">${dec.sub}</div></div></div><div class="dh-bud">${dec.bud}</div></div><div class="dec-opts" id="opts-${dec.id}">${opts}</div></div>`;
+  }).join('');
+}
+
+function renderHCCard(){
+  const avail=S.newHCAvailable;
+  const sliders=DEPTS.map(d=>`<div class="hc-slider-row"><div class="hc-slider-head"><div><div class="hc-dept-name">${d}</div><div class="hc-dept-meta">${DEPT_IMPACTS[d].label}</div><div style="font-size:9px;font-weight:600;color:var(--muted);margin-top:1px;">Current: ${fmt(S.hcDepts[d]||0)} HC</div></div><div class="hc-dept-val" id="hcVal_${d}">0</div></div><input type="range" class="hc-slider" id="hcSlider_${d}" min="0" max="${avail}" value="0" step="1" oninput="onHCSlider('${d}',this.value)"></div>`).join('');
+  const ex=document.getElementById('hcCard');if(ex)ex.remove();
+  const card=document.createElement('div');card.id='hcCard';card.className='dec-card hc-card';
+  card.innerHTML=`<div class="hc-hd"><div class="hc-hd-l"><span class="dh-ico">👥</span><div><div class="hc-title">Headcount Allocation <span class="hc-badge">NEW DECISION</span></div><div class="hc-sub">Allocate all ${fmt(avail)} new hires across departments</div></div></div><div class="hc-available">${fmt(avail)} HC to allocate</div></div><div class="hc-body"><div class="hc-pool-label"><span class="hc-pool-used" id="hcPoolUsed">0 allocated</span><span class="hc-pool-rem" id="hcPoolRem">${fmt(avail)} remaining</span></div><div class="hc-pool-bar"><div class="hc-pool-fill" id="hcPoolFill" style="width:0%"></div></div><div class="hc-sliders">${sliders}</div></div>`;
+  document.getElementById('decisionsArea').appendChild(card);
+}
+
+function recomputeMandatoryHC(){
+  const locked={};Object.values(S.mandatoryHC||{}).forEach(({hc,dept})=>{if(hc>0&&dept)locked[dept]=(locked[dept]||0)+hc;});S.lockedHC=locked;
+  DEPTS.forEach(d=>{const f=locked[d]||0;if((S.hcAlloc[d]||0)<f){S.hcAlloc[d]=f;const sl=document.getElementById(`hcSlider_${d}`);if(sl)sl.value=f;}});
+  renderDecisions(S.currentDecisions);renderHCCard();updateHCCard();
+}
+
+function onHCSlider(dept,val){
+  const f=(S.lockedHC&&S.lockedHC[dept])||0;const c=Math.max(parseInt(val),f);S.hcAlloc[dept]=c;
+  const sl=document.getElementById(`hcSlider_${dept}`);if(sl&&parseInt(sl.value)<f)sl.value=c;
+  updateHCCard();updateUI();
+}
+
+function updateHCCard(){
+  const avail=S.newHCAvailable;const used=Object.values(S.hcAlloc).reduce((a,b)=>a+b,0);const lockedTotal=Object.values(S.lockedHC||{}).reduce((a,b)=>a+b,0);const rem=avail-used;const over=rem<0;const pct=Math.min(used/avail,1)*100;
+  const pu=document.getElementById('hcPoolUsed');const pr=document.getElementById('hcPoolRem');const pf=document.getElementById('hcPoolFill');
+  if(pu)pu.textContent=`${fmt(used)} allocated (${fmt(lockedTotal)} locked by decisions)`;
+  if(pr){pr.textContent=over?`${fmt(Math.abs(rem))} over`:`${fmt(rem)} free remaining`;pr.className=`hc-pool-rem${over?' over':''}`;}
+  if(pf){pf.style.width=pct+'%';pf.className=`hc-pool-fill${over?' over':''}`;}
+  DEPTS.forEach(d=>{const v=document.getElementById(`hcVal_${d}`);const f=(S.lockedHC&&S.lockedHC[d])||0;const sl=document.getElementById(`hcSlider_${d}`);if(sl)sl.min=f;if(v){v.textContent=S.hcAlloc[d];v.style.color=f>0?'var(--green)':'var(--ink)';}});
+  document.getElementById('hcWarn').style.display=(rem!==0)?'inline':'none';
+  renderSideHC();
+}
+
+function renderSideHC(){
+  const total=S.totalHC+Object.values(S.hcAlloc).reduce((a,b)=>a+b,0);
+  document.getElementById('sideHCBars').innerHTML=DEPTS.map(d=>{const cum=(S.hcDepts[d]||0)+S.hcAlloc[d];const pct=Math.round((cum/total)*100);return `<div class="hc-dept-bar-row"><div class="hdb-name">${d}</div><div class="hdb-track"><div class="hdb-fill" style="width:${pct}%"></div></div><div class="hdb-val">${fmt(cum)}</div></div>`;}).join('');
+}
+
+function selectOpt(el,cat,cost,orient,hc,hcDept){
+  if(el.classList.contains('locked'))return;
+  el.closest('.dec-opts').querySelectorAll('.dec-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');
+  S.dec[cat]=1;S.cost[cat]=cost;S.orient[cat]=orient;
+  if(!S.mandatoryHC)S.mandatoryHC={};S.mandatoryHC[cat]={hc:hc||0,dept:hcDept||null};
+  recomputeMandatoryHC();setPhase(2);updateUI();checkSiloAlert();
+}
+
+function checkSiloAlert(){const silos=Object.values(S.orient).filter(o=>o==='silo').length;const al=document.getElementById('siloAlert');const msgs=['Two or more decisions are silo-first. This is compounding the trust deficit.','Three silo-first decisions. Your employees experience this pattern every single day.','Four silo-first decisions. This is the leadership culture your speak-up data is flagging.'];if(silos>=2){document.getElementById('siloMsg').textContent=msgs[Math.min(silos-2,2)];al.classList.remove('off');}else al.classList.add('off');}
+
+function updateUI(){
+  const decided=Object.keys(S.dec).length;const totalCost=Object.values(S.cost).reduce((a,b)=>a+b,0);const budget=S.currentBudget,rem=budget-totalCost,over=rem<0;
+  const hcDone=Object.values(S.hcAlloc).reduce((a,b)=>a+b,0)===S.newHCAvailable;
+  document.getElementById('decCount').textContent=`${decided} of 4 + HC`;
+  document.getElementById('budUsed').textContent=`${C}${totalCost.toFixed(1)}M`;
+  document.getElementById('overWarn').style.display=over?'inline':'none';
+  document.getElementById('hcWarn').style.display=(!hcDone&&decided>0)?'inline':'none';
+  document.getElementById('kBudget').textContent=`${C}${rem.toFixed(1)}M`;
+  document.getElementById('commitBtn').disabled=(decided<4||over||!hcDone);
+  const circ=176,pct=Math.min(totalCost/budget,1);const arc=document.getElementById('bdgArc');arc.setAttribute('stroke-dasharray',`${circ*pct} ${circ}`);arc.style.stroke=pct>.92?'#b83232':pct>.72?'#b87832':'#2A9C64';
+  document.getElementById('bdgSpent').textContent=`${C}${totalCost.toFixed(1)}M`;const le=document.getElementById('bdgLeft');le.textContent=`${C}${rem.toFixed(1)}M remaining`;le.className=`bdg-left ${rem<0?'bl-dn':'bl-ok'}`;
+  updateTrust();updateSideBars();updateBalance();updateTrustTierPanel();updateHCCard();
+}
+
+function updateTrust(){const t=S.metrics.trust;document.getElementById('trustBox').style.setProperty('--tp',t+'%');document.getElementById('tbVal').textContent=`${Math.round(t)}%`;const d=t<35?'Critical. Leaders protect their verticals.':t<50?'Low. Enterprise thinking is rare.':t<65?'Developing. Enterprise-first decisions emerging.':'Strong. Leaders trust each other for the enterprise.';document.getElementById('tbDesc').textContent=d;const ue=document.getElementById('tbUnlock');ue.textContent=t>=50?'🔓 Strategic options unlocked':'🔒 Trust > 50% unlocks strategic options';ue.className='tb-u'+(t>=50?' open':'');}
+function updateTrustTierPanel(){const tier=getTrustTier(S.metrics.trust);for(let i=1;i<=4;i++){const e=document.getElementById(`ttp${i}`);if(e)e.className=`ttp-row${i===tier.tier?' ttp-active':''}`;}}
+function updateSideBars(){const m=S.metrics;[['sh1','sf1',m.trust],['sh2','sf2',m.colab],['sh3','sf3',m.maturity],['sh4','sf4',m.resolution],['sh5','sf5',m.alignment],['sh6','sf6',m.innovation]].forEach(([hid,fid,val])=>{const h=document.getElementById(hid),f=document.getElementById(fid);if(h)h.textContent=`${Math.round(val)}%`;if(f){f.style.width=`${val}%`;f.className=`hb-fill ${val<40?'hf-r':val<62?'hf-a':'hf-g'}`;}});[['cn1',m.resolution>50&&m.maturity>50],['cn2',m.resolution>55],['cn3',m.trust>55],['cn4',m.trust>55],['cn5',m.alignment>55]].forEach(([id,ok])=>{const e=document.getElementById(id);if(e){e.textContent=ok?'OK':'HOT';e.className=`ss-stat ${ok?'ss-ok':'ss-hot'}`;}});const en=document.getElementById('kNPS');en.textContent=m.enps>0?`+${m.enps}`:m.enps;en.className=`kc-v ${m.enps>=0?'kv-g':m.enps>=-10?'kv-a':'kv-r'}`;const at=document.getElementById('kAttr');at.textContent=`${m.attrition}%`;at.className=`kc-v ${m.attrition<15?'kv-g':m.attrition<22?'kv-a':'kv-r'}`;document.getElementById('kRev').textContent=`${C}${m.revenue}M`;document.getElementById('kMkt').textContent=`${m.market.toFixed(1)}%`;document.getElementById('kHC').textContent=fmt(S.totalHC);const cd=document.getElementById('compoundDrift');if(S.year>1&&m.speakScore>70){document.getElementById('compoundDriftBody').textContent='Speak-up volume above 70 — auto-drift active regardless of decisions.';cd.classList.add('show');}else cd.classList.remove('show');}
+function updateBalance(){const ov=Object.values(S.orient);if(!ov.length)return;const ec=ov.filter(o=>o==='ent').length,sc=ov.filter(o=>o==='silo').length,tot=ov.length;const sw=(id,p)=>{const e=document.getElementById(id);if(e)e.style.width=p+'%';};sw('bEnt',Math.min((ec/tot)*50,46));sw('bSilo',Math.min((sc/tot)*50,46));const sv=S.orient.strat==='ent'?45:S.orient.strat==='silo'?25:18;sw('bStrat',sv);sw('bReact',Math.max(48-sv,10));const lv=(S.orient.people==='ent'?18:4)+(S.orient.colab==='ent'?18:4)+(S.orient.strat==='ent'?14:4);sw('bLong',Math.min(lv,44));sw('bShort',Math.max(44-lv,10));}
+function setPhase(n){for(let i=1;i<=3;i++){const e=document.getElementById(`ph${i}`);if(e)e.className='ps'+(i<n?' done':i===n?' cur':'');}}
+
+function openModal(){const si=Object.values(S.orient).filter(o=>o==='silo').length;const tier=getTrustTier(S.metrics.trust);const bn=S.budgetDeductions&&S.budgetDeductions.length?`<br><br><strong>Budget:</strong> ${cur(S.currentBudget)} this year.`:'';const tn=tier.tier<=2?`<br><br><strong>Trust Penalty Active:</strong> ${tier.label}.`:tier.tier===4?`<br><br><strong>Trust Boost Active:</strong> ${tier.label}.`:'';const sn=si>=2?`<br><br><strong>Notice:</strong> ${si} of 4 decisions are silo-first.`:'';const td=Object.entries(S.hcAlloc).sort((a,b)=>b[1]-a[1])[0];const hn=`<br><br><strong>HC Allocation:</strong> ${fmt(Object.values(S.hcAlloc).reduce((a,b)=>a+b,0))} heads. Largest bet: ${td[0]} (${fmt(td[1])}).`;document.getElementById('modalBody').innerHTML=`You're about to lock in Year ${S.year} decisions for <strong>${S.teamName}</strong>. They cannot be changed.<br><br><strong>Remember:</strong> The best leaders commit fully and own the consequences.${bn}${tn}${sn}${hn}`;document.getElementById('modalBg').classList.add('open');}
+function closeModal(){document.getElementById('modalBg').classList.remove('open');}
+
+// ─── OUTCOMES ───
+function computeOutcomes(){
+  const{orient:o,metrics:m,year:yr}=S;const d={revenue:0,market:0,enps:0,attrition:0,speakScore:0,trust:0,colab:0,maturity:0,resolution:0,alignment:0,innovation:0};
+  const pt=m.trust;const{mult:tM}=getTrustTier(m.trust);const cm=o.colab==='ent'?1.25:o.colab==='silo'?.72:.95;
+  if(o.colab==='ent'){d.trust+=14;d.colab+=18;d.alignment+=15;d.resolution+=12;d.maturity+=9;d.speakScore-=18;d.enps+=7;}else if(o.colab==='neu'){d.trust+=3;d.colab+=5;d.alignment+=4;}else{d.trust-=7;d.colab-=5;d.alignment-=7;d.speakScore+=12;}
+  if(o.people==='ent'){d.trust+=13;d.maturity+=14;d.enps+=12;d.attrition-=5;d.speakScore-=18;d.resolution+=14;}else if(o.people==='neu'){d.trust+=3;d.maturity+=5;d.enps+=4;d.attrition-=1;d.speakScore-=4;}else{d.trust-=9;d.maturity-=3;d.enps-=10;d.attrition+=4;d.speakScore+=16;d.resolution-=5;}
+  const tg=m.trust>=50;
+  if(o.strat==='ent'){const bR=yr===1?5:yr===2?(tg?26:4):22;const bM=yr===1?1:yr===2?(tg?4:0):4;d.revenue+=Math.round(bR*cm*tM);d.market+=Math.round(bM*tM*10)/10;d.innovation+=Math.round(18*tM);if(!tg&&yr===2)d.trust-=3;}else if(o.strat==='neu'){d.revenue+=Math.round((yr===1?8:yr===2?14:10)*cm*tM);d.market+=Math.round(2*tM*10)/10;d.innovation+=7;}else{d.revenue+=Math.round(8*tM);d.market+=1;d.innovation+=2;d.enps-=3;}
+  if(o.talent==='ent'){d.attrition-=4;d.enps+=6;d.trust+=3;if(yr>=2)d.attrition-=2;}else if(o.talent==='neu'){d.attrition-=2;d.enps+=2;}else{d.attrition+=3;d.speakScore+=5;}
+  Object.entries(S.hcAlloc).forEach(([dept,hc])=>{if(hc<=0)return;const imp=DEPT_IMPACTS[dept];if(imp.revenue)d.revenue+=Math.round(imp.revenue*hc*tM);if(imp.market)d.market+=Math.round(imp.market*hc*10)/10;if(imp.enps)d.enps+=Math.round(imp.enps*hc);if(imp.speakScore)d.speakScore+=Math.round(imp.speakScore*hc);if(imp.innovation)d.innovation+=Math.round(imp.innovation*hc*.1);if(imp.trust)d.trust+=Math.round(imp.trust*hc*.1);if(imp.alignment)d.alignment+=Math.round(imp.alignment*hc*.1);if(imp.opsBudget)S.opsBonusBudget=Math.round(imp.opsBudget*hc*10)/10;});
+  checkTrustWobbler(pt,Math.min(95,Math.max(5,m.trust+d.trust)));
+  const cl=(v,a,b)=>Math.min(Math.max(v,a),b);
+  const mAD={...m,trust:cl(m.trust+d.trust,5,95),colab:cl(m.colab+d.colab,5,95),speakScore:cl(m.speakScore+d.speakScore,5,100),attrition:cl(m.attrition+d.attrition,3,55),market:cl(m.market+d.market,5,75),maturity:cl(m.maturity+d.maturity,5,95),resolution:cl(m.resolution+d.resolution,5,95),alignment:cl(m.alignment+d.alignment,5,95),innovation:cl(m.innovation+d.innovation,5,95)};
+  S.compoundLog=applyAutoCompound(mAD,o);
+  S.metrics.revenue=Math.round(m.revenue+d.revenue);S.metrics.market=cl(mAD.market,5,75);S.metrics.enps=cl(m.enps+d.enps,-30,80);S.metrics.attrition=cl(mAD.attrition,3,55);S.metrics.speakScore=cl(mAD.speakScore,5,100);S.metrics.trust=cl(mAD.trust,5,95);S.metrics.colab=cl(mAD.colab,5,95);S.metrics.maturity=cl(mAD.maturity,5,95);S.metrics.resolution=cl(mAD.resolution,5,95);S.metrics.alignment=cl(mAD.alignment,5,95);S.metrics.innovation=cl(mAD.innovation,5,95);
+  S.totalHC+=S.newHCAvailable;DEPTS.forEach(dep=>{S.hcDepts[dep]=(S.hcDepts[dep]||0)+S.hcAlloc[dep];});
+  return d;
+}
+function commit(){closeModal();setPhase(3);const delta=computeOutcomes();S.history.push({year:S.year,dec:{...S.dec},orient:{...S.orient},cost:{...S.cost},hcAlloc:{...S.hcAlloc},metrics:{...S.metrics}});showResults(delta);}
+
+// ─── GRADES ───
+function grd(score,low,high){const p=(score-low)/(high-low);return p>=.78?{l:'A',c:'gA'}:p>=.58?{l:'B',c:'gB'}:p>=.38?{l:'C',c:'gC'}:{l:'D',c:'gD'};}
+function computeGrades(m,orient){return[{dim:'Customers First',desc:'eNPS & speak-up resolution',score:(Math.max(0,m.enps+30)/110*100+m.resolution)/2,low:20,high:80},{dim:'Get It Done',desc:'Alignment & attrition',score:(m.alignment+(100-m.attrition))/2,low:20,high:80},{dim:'Set the Standard',desc:'Maturity & collaboration',score:(m.maturity+m.colab)/2,low:20,high:80},{dim:'More with Less',desc:'Budget efficiency & focus',score:(Math.min(Object.values(S.cost).reduce((a,b)=>a+b,0)/S.currentBudget,1)*100+m.innovation)/2,low:20,high:80},{dim:'Find the Truth',desc:'Trust & enterprise thinking',score:(m.trust+(Object.values(orient).filter(o=>o==='ent').length/4)*100)/2,low:20,high:80}];}
+function computeOverall(m){return Math.round((m.trust+m.colab+m.maturity+m.alignment+m.innovation+m.market+(100-m.attrition)+Math.max(0,m.enps+30))/8);}
+
+async function submitScore(){
+  const btn=document.getElementById('submitScoreBtn');
+  const status=document.getElementById('submitStatus');
+  btn.disabled=true;btn.textContent='Submitting...';status.style.color='var(--green-on-dark)';status.textContent='Connecting...';
+  try{
+    const m=S.metrics,grades=computeGrades(m,S.orient),overall=computeOverall(m);
+    const gm={};grades.forEach(g=>{const r=grd(g.score,g.low,g.high);gm[g.dim]=r.l;});
+    await saveScore(S.teamName,S.year,{...m},{...S.hcDepts},gm,overall);
+    btn.textContent='Submitted ✓';status.textContent=`✓ Score submitted for Year ${S.year}`;
+    document.getElementById('btnNext').disabled=false;
+  }catch(e){
+    btn.disabled=false;btn.textContent='Submit Scores →';
+    status.style.color='#e05858';status.textContent=`⚠ ${e.message}`;
+  }
+}
+
+// ─── RESULTS ───
+function showResults(delta){
+  const yr=S.year,m=S.metrics;
+  document.getElementById('resEye').textContent=`Year ${yr} Outcomes — ${S.teamName}`;
+  document.getElementById('resTitle').textContent=yr===1?'The Numbers Are In':yr===2?'Mid-Point Check':"Three Years. Here's What You Built.";
+  document.getElementById('resSub').textContent=`Year ${yr} decisions processed — system has auto-compounded.`;
+  document.getElementById('btnNext').textContent=yr<3?`Proceed to Year ${yr+1} →`:'See Final Results →';
+  document.getElementById('btnNext').disabled=true;
+  document.getElementById('yrCount').textContent=`Year ${yr} of 3`;
+  document.getElementById('submitYrLabel').textContent=yr;
+  document.getElementById('submitScoreBtn').disabled=false;document.getElementById('submitScoreBtn').textContent='Submit Scores →';
+  document.getElementById('submitStatus').textContent='';document.getElementById('submitStatus').style.color='var(--green-on-dark)';
+  const tier=getTrustTier(m.trust);const mc=document.getElementById('multCallout');
+  if(tier.tier!==3){mc.classList.add('show');document.getElementById('multCalloutTxt').textContent=tier.tier<=2?`Trust Penalty active: ${tier.label}.`:`Trust Boost active: ${tier.label}.`;}else mc.classList.remove('show');
+  const cp=document.getElementById('compoundPanel');if(S.compoundLog&&S.compoundLog.length){cp.classList.add('show');document.getElementById('compoundItems').innerHTML=S.compoundLog.map(l=>`<div class="cp-item"><div class="cp-item-h">${l.h}</div><div class="cp-item-b">${l.b}</div></div>`).join('');}else cp.classList.remove('show');
+  document.getElementById('adaptBadge').style.display='none';
+  document.getElementById('hcrTotal').textContent=fmt(S.totalHC);document.getElementById('hcrNew').textContent='+'+fmt(S.newHCAvailable);document.getElementById('hcrGrowth').textContent=Math.round(S.newHCAvailable/S.totalHC*100*10)/10+'%';
+  document.getElementById('hcrDepts').innerHTML=DEPTS.map(d=>`<div class="hcr-dept"><div class="hcr-dept-val">${fmt(S.hcDepts[d]||0)}</div><div class="hcr-dept-name">${d}</div></div>`).join('');
+  const mets=[{lbl:'Market Share',val:`${m.market.toFixed(1)}%`,dt:Math.round(delta.market*10)/10,sfx:'pp',good:delta.market>=0,bar:m.market},{lbl:'Employee NPS',val:m.enps>0?`+${m.enps}`:`${m.enps}`,dt:delta.enps,sfx:'',good:delta.enps>=0,bar:Math.max(0,(m.enps+30)/110*100)},{lbl:'Attrition Rate',val:`${m.attrition}%`,dt:delta.attrition,sfx:'pp',good:delta.attrition<=0,bar:100-m.attrition,inv:true},{lbl:'Revenue',val:`${C}${m.revenue}M`,dt:delta.revenue,sfx:'M',good:delta.revenue>=0,bar:Math.min(m.revenue/300*100,100)}];
+  document.getElementById('metsGrid').innerHTML=mets.map((mt,i)=>{const chg=mt.inv?(mt.dt<=0?`▼ ${Math.abs(mt.dt)}${mt.sfx} (improvement)`:`▲ +${mt.dt}${mt.sfx} (worsening)`):(mt.good?`▲ +${Math.abs(mt.dt)}${mt.sfx}`:`▼ ${mt.dt}${mt.sfx}`);return `<div class="mcard" style="animation-delay:${i*.09}s"><div class="mc-l">${mt.lbl}</div><div class="mc-v" style="color:${mt.good?'#5dda7d':'#e05858'}">${mt.val}</div><div class="mc-c ${mt.good?'mc-pos':'mc-neg'}">${chg} this year</div><div class="mc-bar"><div class="mc-bf" style="width:${mt.bar}%;background:${mt.good?'var(--green)':'var(--red)'}"></div></div></div>`;}).join('');
+  const gd=computeGrades(m,S.orient);
+  document.getElementById('gradesRow').innerHTML=gd.map(g=>{const r=grd(g.score,g.low,g.high);return `<div class="gc"><div class="gl ${r.c}">${r.l}</div><div class="gd">${g.dim}</div><div style="font-size:8px;color:rgba(255,255,255,.3);margin-top:2px;">${g.desc}</div></div>`;}).join('');
+  document.getElementById('insightsArea').innerHTML=buildInsights(yr,delta).map(i=>`<div class="ins${i.d?' danger':''}"><div class="ins-t">${i.type}</div><div class="ins-b">${i.text}</div></div>`).join('');
+  showScreen('results');
+}
+
+function buildInsights(yr,delta){const{orient:o,metrics:m}=S;const ins=[];const silos=Object.values(o).filter(x=>x==='silo').length,ents=Object.values(o).filter(x=>x==='ent').length;const tier=getTrustTier(m.trust);if(silos>=3)ins.push({d:true,type:'⚠ Dominant Silo Pattern',text:`${silos} of 4 decisions prioritised vertical thinking.`});else if(ents>=3)ins.push({d:false,type:'✅ Enterprise-First Majority',text:`${ents} of 4 decisions showed enterprise-first thinking.`});if(o.strat==='ent'&&o.colab!=='ent')ins.push({d:true,type:'⚡ Strategic Incoherence',text:"You chose an enterprise transformation strategy but didn't invest in the collaboration infrastructure to execute it."});if(tier.tier===4)ins.push({d:false,type:'🚀 Trust Boost Compounding',text:`Leader trust at ${Math.round(m.trust)}% — the +15% boost is active on all strategic returns.`});else if(tier.tier===1)ins.push({d:true,type:'🔴 Trust Penalty Active',text:`Trust below 35% applied a 20% penalty on all strategic returns this year.`});const td=Object.entries(S.hcAlloc).sort((a,b)=>b[1]-a[1])[0];const bd=Object.entries(S.hcAlloc).sort((a,b)=>a[1]-b[1])[0];if(td[1]>S.newHCAvailable*.4)ins.push({d:false,type:`👥 HC Concentrated in ${td[0]}`,text:`${Math.round(td[1]/S.newHCAvailable*100)}% of new headcount went to ${td[0]}.`});if(bd[1]===0)ins.push({d:true,type:`👥 ${bd[0]} Received Zero HC`,text:`No new headcount invested in ${bd[0]}. Departments starved of resource typically underperform regardless of strategy.`});if(S.compoundLog&&S.compoundLog.length>1)ins.push({d:true,type:'🔗 Auto-Compound System Running',text:`${S.compoundLog.length} compounding effects ran automatically this year.`});return ins.slice(0,4);}
+
+function nextYear(){if(S.year<3){loadYear(S.year+1);showScreen('game');}else showFinal();}
+
+// ─── FINAL ───
+function showFinal(){
+  const m=S.metrics,h=S.history;const ov=computeOverall(m);
+  let grade,verdict,ctx;
+  if(ov>=70){grade='A';verdict='Enterprise Leaders.\nExceptional.';ctx='Your organisation is materially stronger than when you found it — commercially and culturally.';}
+  else if(ov>=58){grade='B+';verdict='Capable Leaders.\nUnrealised Potential.';ctx='You grew the business. But the gap between what you achieved and what was possible widened.';}
+  else if(ov>=47){grade='B';verdict='Growing Leaders.\nThe Foundation Is Forming.';ctx="Signs of enterprise thinking emerged but didn't fully take hold.";}
+  else if(ov>=36){grade='C';verdict='Vertical Thinking\nPrevailed.';ctx='Individual vertical performance was protected. Enterprise performance was not.';}
+  else{grade='D';verdict='A Leadership\nWake-Up Call.';ctx='The organisation is commercially weaker and culturally more fractured than three years ago.';}
+  document.getElementById('fGrade').textContent=grade;document.getElementById('fVerdict').innerHTML=verdict.replace('\n','<br>');document.getElementById('fCtx').textContent=ctx;
+  const start={revenue:180,market:34,enps:-12,attrition:28};
+  document.getElementById('finalKPIs').innerHTML=[{lbl:'Revenue',val:`${C}${m.revenue}M`,ch:m.revenue-start.revenue,sfx:'M',good:m.revenue>start.revenue},{lbl:'Market Share',val:`${m.market.toFixed(1)}%`,ch:Math.round((m.market-start.market)*10)/10,sfx:'pp',good:m.market>start.market},{lbl:'Employee NPS',val:m.enps>0?`+${m.enps}`:`${m.enps}`,ch:m.enps-start.enps,sfx:'pts',good:m.enps>start.enps},{lbl:'Attrition',val:`${m.attrition}%`,ch:Math.round((m.attrition-start.attrition)*10)/10,sfx:'pp',good:m.attrition<start.attrition}].map(k=>`<div class="fk"><div class="fk-l">${k.lbl}</div><div class="fk-v" style="color:${k.good?'var(--green)':'var(--red)'}">${k.val}</div><div class="fk-c ${k.good?'fc-g':'fc-r'}">${k.good?'▲':'▼'} ${k.ch>0?'+':''}${k.ch}${k.sfx} vs start</div></div>`).join('');
+  const str=[],ref=[];const ci=h.filter(y=>y.orient.colab==='ent').length,pi=h.filter(y=>y.orient.people==='ent').length;const tb=h.some(y=>y.metrics.trust>=65);
+  if(ci>=2)str.push('Consistently invested in structural cross-functional collaboration.');if(pi>=2)str.push('Treated leadership accountability as a systemic priority across multiple years.');if(tb)str.push('Leader trust crossed 65% — unlocking the strategic return boost.');if(m.enps>10)str.push(`Turned a −12 eNPS into +${m.enps}.`);if(!str.length)str.push('Navigated three years of significant pressure from a genuinely difficult starting position.');
+  if(h.filter(y=>Object.values(y.orient).filter(o=>o==='silo').length>=3).length>=2)ref.push('Vertical-first decisions dominated across multiple years.');if(ci===0)ref.push('Structural collaboration was never invested in.');if(pi===0)ref.push('Leadership accountability was never addressed systemically.');if(m.trust<40)ref.push(`Leader trust ended at ${Math.round(m.trust)}%. The penalty was active for most of the simulation.`);if(!ref.length)ref.push('Continue to examine where vertical interest and enterprise interest diverge under pressure.');
+  document.getElementById('debStr').innerHTML=str.slice(0,3).map(s=>`<div class="deb-item"><span class="di-p">+</span>${s}</div>`).join('');
+  document.getElementById('debRef').innerHTML=ref.slice(0,3).map(r=>`<div class="deb-item"><span class="di-a">→</span>${r}</div>`).join('');
+  const grades=computeGrades(m,S.orient),gm={};grades.forEach(g=>{const r=grd(g.score,g.low,g.high);gm[g.dim]=r.l;});
+  saveScore(S.teamName,3,{...m},{...S.hcDepts},gm,ov).catch(e=>console.warn('Auto-save final score:',e));
+  showScreen('final');
+}
+
+// ─── FACILITATOR ───
+let facYear=3;
+async function renderFacilitator(){
+  const content=document.getElementById('facContent');
+  content.innerHTML=`<div class="no-scores"><div class="no-scores-big">⏳</div>Loading scores...</div>`;
+  const all=await loadAllScores();
+  const years=[...new Set(all.map(s=>s.year))].sort();
+  if(!years.includes(facYear))facYear=years.length?years[years.length-1]:1;
+  document.getElementById('facTabs').innerHTML=[1,2,3].map(y=>`<div class="yr-tab${facYear===y?' active':''}" onclick="facYear=${y};renderFacilitator()">Year ${y}</div>`).join('');
+  const ys=all.filter(s=>s.year===facYear);
+  if(!ys.length){content.innerHTML=`<div class="no-scores"><div class="no-scores-big">📊</div>${all.length>0?`${all.length} score(s) found but none for Year ${facYear}. Try another tab.`:'No scores submitted yet.<br><br>Teams submit from the results screen after each year.'}</div>`;return;}
+  ys.sort((a,b)=>b.overall-a.overall);
+  content.innerHTML=(facYear===3&&ys.length>=2?renderPodium(ys):'')+renderLeaderboard(ys)+renderKPIComparison(ys)+renderHCComparison(ys);
+}
+
+function renderLeaderboard(scores){
+  const pk=['Customers First','Get It Done','Set the Standard','More with Less','Find the Truth'];
+  const gc=g=>g==='A'?'gp-A':g==='B'?'gp-B':g==='C'?'gp-C':'gp-D';
+  const rows=scores.map((s,i)=>{const rc=i===0?'r1':i===1?'r2':i===2?'r3':'';const m=s.metrics,es=m.enps>0?`+${m.enps}`:m.enps;return `<tr><td><span class="lb-rank ${rc}">${i+1}</span></td><td><span class="lb-team">${s.teamName}</span></td><td class="num"><span class="${m.market>34?'lb-val-good':m.market>28?'lb-val-mid':'lb-val-bad'}">${m.market.toFixed(1)}%</span></td><td class="num"><span class="${m.enps>=0?'lb-val-good':m.enps>=-10?'lb-val-mid':'lb-val-bad'}">${es}</span></td><td class="num"><span class="${m.attrition<18?'lb-val-good':m.attrition<25?'lb-val-mid':'lb-val-bad'}">${m.attrition}%</span></td><td class="num">${C}${m.revenue}M</td>${pk.map(k=>`<td class="num"><span class="grade-pill ${gc(s.grades?.[k]||'C')}">${s.grades?.[k]||'—'}</span></td>`).join('')}<td class="num"><span class="lb-overall ${s.overall>=60?'lb-val-good':s.overall>=45?'lb-val-mid':'lb-val-bad'}">${s.overall}</span></td></tr>`;}).join('');
+  return `<div class="lb-section"><div class="lb-section-title">Year ${facYear} — Full Leaderboard</div><table class="lb-table"><thead><tr><th>#</th><th>Team</th><th class="num">Market</th><th class="num">eNPS</th><th class="num">Attrition</th><th class="num">Revenue</th><th class="num">Customers First</th><th class="num">Get It Done</th><th class="num">Set the Standard</th><th class="num">More with Less</th><th class="num">Find the Truth</th><th class="num">Overall</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function renderKPIComparison(scores){
+  const kpis=[{label:'Market Share',key:'market',max:60,goodHigh:true,fmt:v=>v.toFixed(1)+'%'},{label:'Employee NPS',key:'enps',max:60,goodHigh:true,offset:30,fmt:v=>v>0?`+${v}`:v},{label:'Attrition Rate',key:'attrition',max:55,goodHigh:false,fmt:v=>v+'%'},{label:'Revenue',key:'revenue',max:300,goodHigh:true,fmt:v=>`${C}${v}M`}];
+  const sections=kpis.map(kpi=>{const sorted=[...scores].sort((a,b)=>kpi.goodHigh?b.metrics[kpi.key]-a.metrics[kpi.key]:a.metrics[kpi.key]-b.metrics[kpi.key]);const bars=sorted.map((s,i)=>{const raw=s.metrics[kpi.key],off=kpi.offset||0;const pct=Math.min(((raw+off)/(kpi.max+off))*100,100);const col=i===0?'var(--green)':i===1?'var(--green-l)':i===sorted.length-1?'var(--red)':'var(--warn)';return `<div class="kpi-bar-row"><div class="kpi-bar-team">${s.teamName}</div><div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:${pct}%;background:${col}"></div></div><div class="kpi-bar-val" style="color:${col}">${kpi.fmt(raw)}</div></div>`;}).join('');return `<div class="kpi-row"><div class="kpi-row-title">${kpi.label}</div><div class="kpi-bars">${bars}</div></div>`;}).join('');
+  return `<div class="lb-section"><div class="lb-section-title">KPI Comparison</div><div class="kpi-compare">${sections}</div></div>`;
+}
+
+function renderHCComparison(scores){
+  const vs=scores.filter(s=>s.hcDepts);if(!vs.length)return'';
+  const rows=DEPTS.map(dept=>{const sorted=[...vs].sort((a,b)=>(b.hcDepts[dept]||0)-(a.hcDepts[dept]||0));const mv=sorted[0]?sorted[0].hcDepts[dept]||0:1;const bars=sorted.map((s,i)=>{const val=s.hcDepts[dept]||0,pct=mv>0?Math.round(val/mv*100):0;const col=i===0?'var(--green)':'rgba(255,255,255,.3)';return `<div class="kpi-bar-row"><div class="kpi-bar-team">${s.teamName}</div><div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:${pct}%;background:${col}"></div></div><div class="kpi-bar-val" style="color:${col}">${val.toLocaleString()}</div></div>`;}).join('');return `<div class="kpi-row"><div class="kpi-row-title">${dept} — ${DEPT_IMPACTS[dept].label}</div><div class="kpi-bars">${bars}</div></div>`;}).join('');
+  return `<div class="lb-section"><div class="lb-section-title">Headcount Allocation by Department</div><div class="kpi-compare">${rows}</div></div>`;
+}
+
+function renderPodium(scores){
+  const top=scores.slice(0,Math.min(scores.length,6));const bc=['pb-1','pb-2','pb-3','pb-rest','pb-rest','pb-rest'];
+  const order=top.length>=3?[1,0,2,...Array.from({length:top.length-3},(_,i)=>i+3)]:top.map((_,i)=>i);
+  const places=order.map(i=>{const s=top[i];if(!s)return'';return `<div class="podium-place"><div class="podium-name">${s.teamName}</div><div class="podium-score-label">Overall</div><div class="podium-score">${s.overall}</div><div class="podium-block ${bc[i]}"><span class="podium-place-num">${i+1}</span></div></div>`;}).join('');
+  return `<div class="podium-wrap"><div class="podium-title">Bolt Forward — Final Results</div><div class="podium-sub">Three years. This is what your leaders built.</div><div class="podium">${places}</div></div>`;
+}
+
+updateUI();
+</script>
+</body>
+</html>
