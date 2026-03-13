@@ -635,36 +635,36 @@ body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;fon
 // ═══════════════════════════════════════════════════════════
 // CONFIGURATION — edit these two values then re-upload
 // ═══════════════════════════════════════════════════════════
-const JSONBIN_ID  = '69b43eecaa77b81da9e0d31e';
-const JSONBIN_KEY = '$2a$10$BxWd00uUtnDWzoIrgywW8.WBn2qHQH9oFTpWpZ7HodJrlNvQ0aJFe';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWoOdmWdnfPo6J2stvk4sCDTL2bRvHYkYLf8WCDYuXWBraX_YGrEC-yAArBaVIReQ0FA/exec';
+
 // ═══════════════════════════════════════════════════════════
 
 const C = '€';
-const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
+
 
 // ─── STORAGE ───
 const HEADERS = {
   'Content-Type': 'application/json',
-  'X-Master-Key': JSONBIN_KEY,
-  'X-Access-Key': JSONBIN_KEY
+  
+  
 };
 
 async function saveScore(tn,yr,m,hc,g,ov){
   try{
-    const r=await fetch(JSONBIN_URL+'/latest',{headers:HEADERS});
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
     if(!r.ok)throw new Error(`Read ${r.status}`);
     const data=await r.json();
     const scores=Array.isArray(data.record?.scores)?data.record.scores:[];
     const filtered=scores.filter(s=>!(s.teamName===tn&&s.year===yr));
     filtered.push({teamName:tn,year:yr,metrics:m,hcDepts:hc,grades:g,overall:ov,ts:Date.now()});
-    const w=await fetch(JSONBIN_URL,{method:'PUT',headers:HEADERS,body:JSON.stringify({scores:filtered})});
-    if(!w.ok)throw new Error(`Write ${w.status}: ${await w.text()}`);
+    
+    
   }catch(e){console.error('saveScore:',e);throw e;}
 }
 
 async function loadAllScores(){
   try{
-    const r=await fetch(JSONBIN_URL+'/latest',{headers:HEADERS});
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
     if(!r.ok)return[];
     const data=await r.json();
     return Array.isArray(data.record?.scores)?data.record.scores:[];
