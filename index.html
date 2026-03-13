@@ -641,21 +641,18 @@ const C = '€';
 
 // ─── STORAGE ───
 async function saveScore(tn, yr, m, hc, g, ov) {
-  const scoreData = {
-    teamName: tn,
-    year: yr,
-    metrics: m,
-    hcDepts: hc,
-    grades: g,
-    overall: ov,
-    ts: Date.now()
-  };
-  await fetch(SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(scoreData)
-  });
+  const scoreData = {teamName:tn, year:yr, metrics:m, hcDepts:hc, grades:g, overall:ov, ts:Date.now()};
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(scoreData)
+    });
+  } catch(e) {
+    console.error('saveScore:', e);
+    throw e;
+  }
 }
 
 async function loadAllScores() {
